@@ -344,14 +344,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     <ul id="trashList"></ul>
   </details>
 
-  <p class="note" id="note">누구나 볼 수 있어요. 추가하거나 고치려면 가족 비밀번호가 필요해요. 생일은 해마다 다음 생일까지, 기념일은 시작한 날을 1일로 세요.</p>
+  <p class="note" id="note">가족 비밀번호를 아는 사람만 보고 고칠 수 있어요. 생일은 해마다 다음 생일까지, 기념일은 시작한 날을 1일로 세요.</p>
 </div>
 
 <!-- 비밀번호 창 -->
 <div class="veil" id="lockVeil" hidden>
   <form class="panel" id="lockForm" novalidate>
     <h2>가족 비밀번호</h2>
-    <p class="hint">추가하거나 고치려면 비밀번호가 필요해요. 이 기기에 기억해 둘게요.</p>
+    <p class="hint">목록을 보거나 고치려면 비밀번호가 필요해요. 이 기기에 기억해 둘게요.</p>
     <label class="field"><span>비밀번호</span><input id="f-pw" type="password" autocomplete="current-password" required></label>
     <p class="err" id="pwErr"></p>
     <div class="actions">
@@ -443,24 +443,43 @@ const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localSt
 
 // ---------------------------------------------------------------------
 // 저장소: Firebase Realtime Database, 설정이 없으면 체험 모드(localStorage)
+// 목록은 v/<열쇠>/ 아래에 있다. 열쇠 = SHA-256("dday-samkong:" + 비밀번호) 라서
+// 비밀번호를 모르면 목록 위치도 모르고, 서버 규칙도 그 열쇠로만 읽기를 허락한다.
 // 쓰기마다 proof/<id> 에 비밀번호를 같이 보내고, 서버 규칙이 맞는지 확인한다.
 // ---------------------------------------------------------------------
 const hasConfig = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL);
 let pw = lsGet("dday-pw");
+
+async function keyOf(p) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("dday-samkong:" + p));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 const store = hasConfig ? firebaseStore() : demoStore();
 
 function firebaseStore() {
   firebase.initializeApp(FIREBASE_CONFIG);
   const rdb = firebase.database();
+  let key = null, refs = [];
+  const rows = (s) => Object.entries(s.val() || {}).map(([id, d]) => ({ id, ...d }));
   return {
     newId: () => rdb.ref("events").push().key,
-    listen(onItems, onTrash, onError) {
-      rdb.ref("events").on("value", (s) => onItems(Object.entries(s.val() || {}).map(([id, d]) => ({ id, ...d }))), onError);
-      rdb.ref("trash").on("value", (s) => onTrash(Object.entries(s.val() || {}).map(([id, d]) => ({ id, ...d }))), onError);
+    async listen(p, onItems, onTrash, onError) {
+      this.stop();
+      key = await keyOf(p);
+      refs = [rdb.ref(`v/${key}/events`), rdb.ref(`v/${key}/trash`)];
+      refs[0].on("value", (s) => onItems(rows(s)), onError);
+      refs[1].on("value", (s) => onTrash(rows(s)), onError);
     },
-    check: (p) => rdb.ref("proof/_check").set(p),
-    write: (updates) => rdb.ref().update(updates),
+    stop() { refs.forEach((r) => r.off()); refs = []; key = null; },
+    async check(p) { await rdb.ref(`v/${await keyOf(p)}/events`).limitToFirst(1).get(); },
+    write(updates) {
+      const out = {};
+      for (const [path, val] of Object.entries(updates)) {
+        out[/^(events|trash)\//.test(path) ? `v/${key}/${path}` : path] = val;
+      }
+      return rdb.ref().update(out);
+    },
   };
 }
 
@@ -478,7 +497,8 @@ function demoStore() {
   };
   return {
     newId: () => "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-    listen(onItems, onTrash) { listeners = [onItems, onTrash]; setTimeout(emit, 0); },
+    async listen(p, onItems, onTrash) { listeners = [onItems, onTrash]; setTimeout(emit, 0); },
+    stop() { listeners = null; },
     check: async (p) => { if (!p) throw new Error("empty"); },
     async write(updates) {
       for (const [path, val] of Object.entries(updates)) {
@@ -677,6 +697,15 @@ function render() {
   renderTrash();
 
   const list = $("list");
+  if (viewLocked()) {
+    const e = document.createElement("div"); e.className = "empty";
+    e.innerHTML = SLEEPY_CAT;
+    const st = document.createElement("strong"); st.textContent = "가족만 볼 수 있다냥";
+    const b = document.createElement("button"); b.type = "button"; b.className = "add"; b.textContent = "🔑 비밀번호 넣기";
+    b.onclick = () => needUnlock(() => {});
+    e.append(st, "가족 비밀번호를 넣으면 목록이 보여요. 한 번 넣으면 이 기기에서는 기억해요.", b);
+    list.replaceChildren(e); return;
+  }
   if (!ready) return;
   const shown = rows.filter((r) => filter === "all" || r.it.kind === filter).sort((a, b) => a.c.key - b.c.key);
   if (!shown.length) {
@@ -730,20 +759,29 @@ $("lockForm").addEventListener("submit", async (e) => {
   try {
     await store.check(p);
     pw = p; lsSet("dday-pw", p); paintLock();
-    $("lockVeil").hidden = true; toast("열렸다냥! 이제 고칠 수 있어요");
+    $("lockVeil").hidden = true; toast("열렸다냥!");
+    startListening();
     const f = afterUnlock; afterUnlock = null; if (f) f();
   } catch { $("pwErr").textContent = "비밀번호가 틀렸어요. 다시 넣어주세요."; }
   finally { $("lockOk").disabled = false; }
 });
 $("lockCancel").onclick = () => { $("lockVeil").hidden = true; afterUnlock = null; };
 $("lockBtn").onclick = () => {
-  if (pw) { pw = null; lsSet("dday-pw", null); paintLock(); toast("이 기기에서 편집을 잠갔어요"); }
+  if (pw) { pw = null; lsSet("dday-pw", null); paintLock(); showLocked(); toast("이 기기에서 잠갔어요"); }
   else needUnlock(() => {});
 };
 function lockedOut() {      // 서버가 비밀번호를 거절함 (비밀번호가 바뀐 경우 등)
-  pw = null; lsSet("dday-pw", null); paintLock();
+  pw = null; lsSet("dday-pw", null); paintLock(); showLocked();
   toast("비밀번호가 맞지 않아요. 다시 넣어주세요.");
 }
+function startListening() {
+  store.listen(pw,
+    (list) => { items = list; ready = true; render(); },
+    (list) => { trash = list; render(); },
+    () => lockedOut());
+}
+function showLocked() { store.stop(); items = []; trash = []; ready = true; render(); }
+const viewLocked = () => hasConfig && !pw;
 
 // ---------------------------------------------------------------------
 // 편집 창
@@ -877,11 +915,8 @@ render();
 setInterval(render, 60000);   // 자정이 지나면 숫자가 바뀌도록
 setInterval(tick, 1000);      // 특별한 날 카드의 초 단위 카운트다운
 
-store.listen(
-  (list) => { items = list; ready = true; render(); },
-  (list) => { trash = list; render(); },
-  () => { ready = true; render(); toast("목록을 불러오지 못했어요. Firebase 설정과 규칙을 확인해 주세요."); },
-);
+if (pw || !hasConfig) startListening();
+else { showLocked(); needUnlock(() => {}); }
 </script>
 </body>
 </html>
