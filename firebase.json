@@ -1,0 +1,7 @@
+{
+  "hosting": {
+    "site": "kojang-dday",
+    "public": ".",
+    "ignore": ["firebase.json", "README.md", "**/.*", "**/node_modules/**"]
+  }
+}

@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>우리집 디데이</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="우리집 디데이">
+<meta name="theme-color" content="#ffd9e5">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
@@ -192,6 +199,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .trash li { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
 .trash li span { min-width: 0; overflow-wrap: anywhere; }
 .trash li small { color: var(--muted); }
+.backup { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+.backup .btn { font-size: 13px; padding: 5px 14px; }
 
 /* 편집 창 */
 .veil { position: fixed; inset: 0; background: rgba(30, 20, 30, .45); display: grid; place-items: center; padding: 16px; z-index: 10; }
@@ -347,6 +356,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     <summary id="trashSum">최근 지운 항목</summary>
     <ul id="trashList"></ul>
   </details>
+
+  <div class="backup" id="backupBox" hidden>
+    <span>백업</span>
+    <button type="button" class="btn" id="exportBtn">💾 백업 파일 받기</button>
+    <button type="button" class="btn" id="importBtn">📂 백업에서 되살리기</button>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+  </div>
 
   <p class="note" id="note">가족 비밀번호를 아는 사람만 보고 고칠 수 있어요. 생일은 해마다 다음 생일까지, 기념일은 시작한 날을 1일로 세요.</p>
 </div>
@@ -674,6 +690,7 @@ function renderFilters() {
 function renderTrash() {
   const recent = trash.slice().sort((a, b) => String(b.deletedAt).localeCompare(String(a.deletedAt))).slice(0, 30);
   $("trashBox").hidden = !recent.length;
+  $("backupBox").hidden = !pw;
   $("trashSum").textContent = `최근 지운 항목 (${recent.length})`;
   $("trashList").replaceChildren(...recent.map((x) => {
     const li = document.createElement("li");
@@ -897,6 +914,32 @@ document.addEventListener("keydown", (e) => {
   if (!$("lockVeil").hidden) $("lockCancel").onclick();
 });
 $("addBtn").onclick = () => edit(null);
+
+// ---- 백업: 목록을 파일로 받고, 그 파일로 되살리기 ----
+$("exportBtn").onclick = () => {
+  const strip = ({ id, ...d }) => [id, d];
+  const data = { app: "우리집 디데이", exportedAt: new Date().toISOString(),
+    events: Object.fromEntries(items.map(strip)), trash: Object.fromEntries(trash.map(strip)) };
+  const t = today(), ymd = `${t.getFullYear()}${String(t.getMonth() + 1).padStart(2, "0")}${String(t.getDate()).padStart(2, "0")}`;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+  a.download = `우리집디데이-백업-${ymd}.json`;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast(`${items.length}개를 백업 파일로 받았어요`);
+};
+$("importBtn").onclick = () => needUnlock(() => { $("importFile").value = ""; $("importFile").click(); });
+$("importFile").onchange = async () => {
+  const f = $("importFile").files[0]; if (!f) return;
+  let events;
+  try { events = JSON.parse(await f.text()).events; } catch { events = null; }
+  const ok = events && typeof events === "object" ? Object.entries(events).filter(([id, d]) => /^[\w-]{1,64}$/.test(id) && d && KINDS[d.kind] && d.title && parse(d.date)) : [];
+  if (!ok.length) { toast("우리집 디데이 백업 파일이 아니에요. 받았던 .json 파일을 골라주세요."); return; }
+  const updates = {};
+  for (const [id, d] of ok) { updates["events/" + id] = { ...d, updatedAt: new Date().toISOString() }; updates["proof/" + id] = pw; }
+  try { await store.write(updates); toast(`${ok.length}개를 되살렸어요 (같은 항목은 백업 내용으로 바뀌어요)`); }
+  catch (err) { failed(err); }
+};
 
 // ---------------------------------------------------------------------
 // 밝게/어둡게
