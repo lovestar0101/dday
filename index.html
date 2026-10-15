@@ -215,6 +215,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-family: var(--f-display); font-size: 16px; }
 .btn.danger { color: var(--accent); border-color: var(--accent); background: transparent; }
 #lockVeil { z-index: 15; }
+.field > label > span { font-size: 13px; color: var(--muted); }
+.pwrow { display: flex; gap: 8px; align-items: center; }
+.pwrow input { flex: 1; min-width: 0; }
+.pwrow .btn { white-space: nowrap; }
 .err { color: var(--accent); font-size: 13px; margin: 0; min-height: 1.2em; }
 .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--sheet); padding: 9px 18px; border-radius: 999px; font-size: 14px; z-index: 20; max-width: calc(100% - 32px); }
 
@@ -352,7 +356,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   <form class="panel" id="lockForm" novalidate>
     <h2>가족 비밀번호</h2>
     <p class="hint">목록을 보거나 고치려면 비밀번호가 필요해요. 이 기기에 기억해 둘게요.</p>
-    <label class="field"><span>비밀번호</span><input id="f-pw" type="password" autocomplete="current-password" required></label>
+    <div class="field"><label for="f-pw"><span>비밀번호</span></label>
+      <div class="pwrow"><input id="f-pw" type="password" autocomplete="current-password" required>
+        <button type="button" class="btn small" id="pwShow" aria-label="비밀번호 보이기">👁 보기</button></div></div>
     <p class="err" id="pwErr"></p>
     <div class="actions">
       <div class="right">
@@ -749,6 +755,7 @@ function needUnlock(then) {
   if (pw) { then(); return; }
   afterUnlock = then;
   $("f-pw").value = ""; $("pwErr").textContent = "";
+  $("f-pw").type = "password"; $("pwShow").textContent = "👁 보기";
   $("lockVeil").hidden = false; $("f-pw").focus();
 }
 $("lockForm").addEventListener("submit", async (e) => {
@@ -765,6 +772,13 @@ $("lockForm").addEventListener("submit", async (e) => {
   } catch { $("pwErr").textContent = "비밀번호가 틀렸어요. 다시 넣어주세요."; }
   finally { $("lockOk").disabled = false; }
 });
+$("pwShow").onclick = () => {
+  const show = $("f-pw").type === "password";
+  $("f-pw").type = show ? "text" : "password";
+  $("pwShow").textContent = show ? "🙈 숨기기" : "👁 보기";
+  $("pwShow").setAttribute("aria-label", show ? "비밀번호 숨기기" : "비밀번호 보이기");
+  $("f-pw").focus();
+};
 $("lockCancel").onclick = () => { $("lockVeil").hidden = true; afterUnlock = null; };
 $("lockBtn").onclick = () => {
   if (pw) { pw = null; lsSet("dday-pw", null); paintLock(); showLocked(); toast("이 기기에서 잠갔어요"); }
