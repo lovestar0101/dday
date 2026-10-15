@@ -357,8 +357,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     <h2>가족 비밀번호</h2>
     <p class="hint">목록을 보거나 고치려면 비밀번호가 필요해요. 이 기기에 기억해 둘게요.</p>
     <div class="field"><label for="f-pw"><span>비밀번호</span></label>
-      <div class="pwrow"><input id="f-pw" type="password" autocomplete="current-password" required>
-        <button type="button" class="btn small" id="pwShow" aria-label="비밀번호 보이기">👁 보기</button></div></div>
+      <div class="pwrow"><input id="f-pw" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+        <button type="button" class="btn small" id="pwShow" aria-label="비밀번호 숨기기">🙈 숨기기</button></div></div>
     <p class="err" id="pwErr"></p>
     <div class="actions">
       <div class="right">
@@ -755,7 +755,7 @@ function needUnlock(then) {
   if (pw) { then(); return; }
   afterUnlock = then;
   $("f-pw").value = ""; $("pwErr").textContent = "";
-  $("f-pw").type = "password"; $("pwShow").textContent = "👁 보기";
+  $("f-pw").type = "text"; $("pwShow").textContent = "🙈 숨기기";
   $("lockVeil").hidden = false; $("f-pw").focus();
 }
 $("lockForm").addEventListener("submit", async (e) => {
