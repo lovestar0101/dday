@@ -205,6 +205,8 @@ h1 .nyang { color: var(--accent-text); }
 .spot-card .st { font-family: var(--f-display); font-size: 16px; line-height: 1.25; margin-top: 2px; overflow-wrap: anywhere; }
 .spot-card .sbig { font-family: var(--f-display); font-size: clamp(26px, 7.5vw, 34px); line-height: 1; margin-top: auto; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(0, 0, 0, .08); white-space: nowrap; }
 .spot-card .live { font-variant-numeric: tabular-nums; font-size: 12px; min-height: 1.4em; margin-top: 2px; }
+.spot-card .sbig .wd { font-family: var(--f-body); font-size: 14px; margin-left: 3px; }
+.spot-card .sbig .yr { display: block; font-family: var(--f-body); font-size: 11px; }
 .spot-card .ssub { font-size: 11px; opacity: .85; margin-top: 1px; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .thumb { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; vertical-align: -7px; margin-right: 6px; border: 2px solid var(--line); }
 .photorow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -240,10 +242,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .row:first-child { border-top: 0; }
 .row:hover { background: color-mix(in srgb, var(--chip) 60%, transparent); }
 .dd { font-family: var(--f-display); font-size: 27px; line-height: 1.05; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.dd small { display: block; font-family: var(--f-body); font-size: 12px; color: var(--muted); margin-top: 3px; }
-.dd.today { color: var(--accent-text); }
-.dd.soon { color: var(--warn); }
-.dd.past { color: var(--muted); }
+.dd small { display: block; font-family: var(--f-display); font-size: 14px; color: var(--muted); margin-top: 4px; }
+.dd .wd { font-family: var(--f-body); font-size: 13px; color: var(--muted); margin-left: 2px; }
+.dd .yr { display: block; font-family: var(--f-body); font-size: 11px; color: var(--muted); margin-bottom: 1px; }
+.dd.today small { color: var(--accent-text); }
+.dd.soon small { color: var(--warn); }
+.dd.past small { color: var(--muted); }
 .info { min-width: 0; }
 .info .t { font-size: 16px; overflow-wrap: anywhere; }
 .info .s { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
@@ -483,7 +487,7 @@ let items = [];          // {id, kind, title, date, place, memo, fancy, on, off,
 let trash = [];          // {id, ...data, deletedAt}
 let group = null;        // 디데이 화면에서 고른 종류 (null 이면 종류 고르는 타일)
 const GROUPS = {
-  dday:   { label: "디데이",   icon: "💛", hint: "생일·기념일·특별한 날", kind: "birthday", match: (it) => it.kind === "birthday" || it.kind === "anniv" || it.fancy, k: "--c-birthday" },
+  dday:   { label: "기념일",   icon: "💛", hint: "생일·기념일·특별한 날", kind: "birthday", match: (it) => it.kind === "birthday" || it.kind === "anniv" || it.fancy, k: "--c-birthday" },
   expiry: { label: "유통기한", icon: "🥛", hint: "냉장고 속 먹거리", kind: "expiry", match: (it) => it.kind === "expiry", k: "--c-expiry" },
   plan:   { label: "일정",     icon: "🗓️", hint: "약속·할 일", kind: "plan", match: (it) => it.kind === "plan", k: "--c-plan" },
   cycle:  { label: "약",       icon: "💊", hint: "먹는 날·쉬는 날", kind: "cycle", match: (it) => it.kind === "cycle", k: "--c-cycle" },
@@ -693,9 +697,9 @@ function renderSpot(rows) {
       fx.append(h);
     }
     if (it.photo) { const ph = document.createElement("img"); ph.className = "ph"; ph.src = it.photo; ph.alt = ""; card.append(ph); card.classList.add("has-ph"); }
-    const eb = document.createElement("div"); eb.className = "eyebrow"; eb.textContent = isToday ? "🎉 바로 오늘!" : "💛 두근두근";
+    const eb = document.createElement("div"); eb.className = "eyebrow"; eb.textContent = isToday ? "🎉 바로 오늘!" : `💛 ${ddSmall(it, c)}`;
     const st = document.createElement("div"); st.className = "st"; st.textContent = it.title;
-    const big = document.createElement("div"); big.className = "sbig"; big.textContent = c.big;
+    const big = document.createElement("div"); big.className = "sbig"; dateBig(big, whenOf(it, c, today()), today());
     const live = document.createElement("div"); live.className = "live";
     if (isToday) live.textContent = c.party || "";
     else if (c.target) live.dataset.target = String(c.target.getTime());
@@ -747,11 +751,32 @@ function clickable(el, it) {
   el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); edit(it); } };
 }
 function thumb(src) { const i = document.createElement("img"); i.className = "thumb"; i.src = src; i.alt = ""; return i; }
+// 날짜 중심: 크게는 '그날'(다음 생일·기념일, 유통기한, 일정, 약 바뀌는 날), 작게는 D-며칠
+function whenOf(it, c, t) {
+  const base = parse(it.date);
+  if (it.kind === "birthday") { let n = onYear(base, t.getFullYear()); if (n < t) n = onYear(base, t.getFullYear() + 1); return n; }
+  if (it.kind === "anniv") return c.target || base;
+  if (it.kind === "cycle") {
+    const on = Math.max(1, Math.round(Number(it.on) || 21)), off = Math.max(0, Math.round(Number(it.off) || 0)), d = diff(base, t);
+    if (d < 0 || !off) return d < 0 ? base : t;
+    const pos = d % (on + off), at = (k) => new Date(t.getFullYear(), t.getMonth(), t.getDate() + k);
+    return pos < on ? at(on - pos - 1) : at(on + off - pos);   // 먹는 중이면 마지막 먹는 날, 쉬는 중이면 다시 먹는 날
+  }
+  return base;
+}
+function dateBig(el, d, t) {
+  if (d.getFullYear() !== t.getFullYear()) { const y = document.createElement("span"); y.className = "yr"; y.textContent = `${d.getFullYear()}년`; el.append(y); }
+  el.append(`${d.getMonth() + 1}.${String(d.getDate()).padStart(2, "0")}`);
+  const w = document.createElement("span"); w.className = "wd"; w.textContent = WEEK[d.getDay()]; el.append(w);
+}
+function ddSmall(it, c) { return it.kind === "anniv" || it.kind === "cycle" ? `${c.big} ${c.small}` : c.big; }
 function makeRow({ it, c }) {
   const row = document.createElement("div");
   row.className = "row" + (c.expired ? " expired" : "") + (it.fancy ? " fancy" : "");
   const dd = document.createElement("div"); dd.className = "dd " + (c.state || "");
-  dd.textContent = c.big; const sm = document.createElement("small"); sm.textContent = c.small; dd.append(sm);
+  const t = today(), w = whenOf(it, c, t);
+  dateBig(dd, w, t);
+  const sm = document.createElement("small"); sm.textContent = ddSmall(it, c); dd.append(sm);
   const info = document.createElement("div"); info.className = "info";
   const ti = document.createElement("div"); ti.className = "t"; ti.textContent = (it.fancy ? "💛 " : "") + it.title;
   if (it.photo) ti.prepend(thumb(it.photo));
@@ -760,7 +785,7 @@ function makeRow({ it, c }) {
   const pill = document.createElement("span"); pill.className = "pill k-" + it.kind; pill.textContent = KINDS[it.kind]?.label || "기타";
   row.append(dd, info, pill);
   clickable(row, it);
-  row.setAttribute("aria-label", `${it.title}, ${c.big}, ${c.small}. 눌러서 고치기`);
+  row.setAttribute("aria-label", `${it.title}, ${w.getMonth() + 1}월 ${w.getDate()}일, ${c.big}, ${c.small}. 눌러서 고치기`);
   return row;
 }
 
