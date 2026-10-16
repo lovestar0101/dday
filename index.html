@@ -137,6 +137,16 @@ h1 { text-shadow: 0 1px 0 var(--paper), 0 0 10px var(--paper); }
 .summary button { white-space: nowrap; font: inherit; font-size: 13px; color: var(--ink); background: var(--sheet); border: 1.5px solid var(--line); border-radius: 999px; padding: 3px 12px; cursor: pointer; }
 .summary button.hot { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--sheet)); }
 
+.ico { display: inline-flex; align-items: center; justify-content: center; vertical-align: -2px; line-height: 1; }
+.ico.svg svg { width: 1.15em; height: 1.15em; display: block; }
+.ico.svg svg[viewBox="0 0 26 16"] { width: 1.6em; height: 1em; }
+.tile .ic .ico { font-size: 26px; }
+.tile .ic .ico.svg svg { width: 30px; height: 30px; }
+.tile .ic .ico.svg svg[viewBox="0 0 26 16"] { width: 40px; height: 26px; }
+.day .tag .ico { font-size: 10px; margin-right: 1px; }
+.pill .ico { margin-right: 3px; }
+.t .ico.bell, .st .ico.bell { margin-left: 4px; }
+
 /* 검색 */
 .search { display: flex; align-items: center; gap: 8px; background: var(--sheet); border: 2px solid var(--line); border-radius: 999px; padding: 4px 6px 4px 14px; }
 .search input { flex: 1; min-width: 0; font: inherit; color: var(--ink); background: transparent; border: 0; padding: 4px 0; outline: none; }
@@ -213,6 +223,11 @@ h1 .nyang { color: var(--accent-text); }
 .spot-card .sbig .yr { display: block; font-family: var(--f-body); font-size: 11px; }
 .spot-card .ssub { font-size: 11px; opacity: .85; margin-top: 1px; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .thumb { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; vertical-align: -7px; margin-right: 6px; border: 2px solid var(--line); }
+.emorow { display: flex; gap: 8px; align-items: center; }
+.field .emorow input { width: 56px; flex: none; text-align: center; font-size: 20px; padding: 4px 6px; }
+.emochips { flex: 1; min-width: 0; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.emochips button { font-size: 19px; background: none; border: 0; padding: 4px; border-radius: 8px; cursor: pointer; }
+.emochips button:hover { background: var(--chip); }
 .photorow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .photorow img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--line); }
 .fx { position: absolute; inset: 0; pointer-events: none; }
@@ -279,6 +294,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 /* 편집 창 */
 .veil { position: fixed; inset: 0; background: rgba(30, 20, 30, .45); display: grid; place-items: center; padding: 16px; z-index: 10; }
 .panel { background: var(--sheet); color: var(--ink); border-radius: 22px; width: 100%; max-width: 440px; max-height: 100%; overflow: auto; padding: 22px; display: grid; gap: 14px; }
+.panel > *, .field > * { min-width: 0; }
 .panel h2 { font-family: var(--f-display); font-weight: 400; font-size: 24px; margin: 0; }
 .kinds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -404,7 +420,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 <nav class="tabbar" aria-label="화면 바꾸기">
   <div class="in" role="tablist">
     <button type="button" role="tab" data-tab="cal"><span class="ico" aria-hidden="true">📅</span>냥달력</button>
-    <button type="button" role="tab" data-tab="list"><span class="ico" aria-hidden="true">🐾</span>냥서랍<span class="badge" id="badge" hidden></span></button>
+    <button type="button" role="tab" data-tab="list"><span class="ico" aria-hidden="true">🐱</span>냥서랍<span class="badge" id="badge" hidden></span></button>
     <button type="button" role="tab" data-tab="set"><span class="ico" aria-hidden="true">⚙️</span>설정</button>
   </div>
 </nav>
@@ -433,6 +449,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     <h2 id="formTitle">새 디데이</h2>
     <div class="kinds" id="kinds"></div>
     <label class="field"><span id="titleLabel">이름</span><input id="f-title" required maxlength="60" autocomplete="off"></label>
+    <div class="field"><span>이모지 (이름 보고 자동으로 골라요 · 눌러서 바꾸기)</span>
+      <div class="emorow"><input id="f-emoji" maxlength="8" autocomplete="off" aria-label="이모지" placeholder="없음">
+        <span class="emochips" id="emoChips"></span></div></div>
     <label class="field"><span id="dateLabel">날짜</span><input id="f-date" type="date" required></label>
     <p class="hint" id="kindHint"></p>
     <label class="field" id="placeWrap"><span>보관 위치</span>
@@ -448,6 +467,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
         <button type="button" class="btn small" id="photoPick">📷 사진 고르기</button>
         <button type="button" class="btn small" id="photoDel" hidden>사진 빼기</button>
         <input type="file" id="f-photo" accept="image/*" hidden></div></div>
+    <label class="check"><input type="checkbox" id="f-important"><span><span class="bellmark"></span> 중요<small>잊으면 안 되는 것 — 냥달력·냥서랍에 고양이 방울을 달아요</small></span></label>
     <label class="check"><input type="checkbox" id="f-fancy"><span>💛 특별하게 꾸미기<small>디데이 화면 맨 위에 카드로, 초 단위 카운트다운까지 보여줘요</small></span></label>
     <div class="actions">
       <button type="button" class="btn danger" id="delBtn" hidden>지우기</button>
@@ -482,6 +502,37 @@ const KINDS = {
   plan:     { label: "일정", title: "무슨 일정?", date: "날짜", hint: "그날까지 남은 날을 세요." },
   etc:      { label: "기타", title: "이름", date: "날짜", hint: "그날까지 남은 날, 지나면 지난 날을 세요." },
 };
+// 종류 표시: 냥서랍·냥달력 어디서나 똑같이 (약=츄르, 기념일=노란 하트, 유통기한=생선 뼈, 일정=발도장, 기타=바나나, 중요=고양이 방울)
+const SVG_FISHBONE = `<svg viewBox="0 0 26 16" aria-hidden="true"><path d="M1.5 8 Q3.5 2.8 7.2 4.8 L7.2 11.2 Q3.5 13.2 1.5 8Z" fill="#97a3b0"/><circle cx="4" cy="7.2" r="1" fill="#fff"/><g fill="none" stroke="#97a3b0" stroke-width="1.9" stroke-linecap="round"><path d="M7 8 H20.5"/><path d="M10 4.6 V11.4 M13.4 4.2 V11.8 M16.8 4.6 V11.4"/><path d="M20.5 8 L24.6 4.2 M20.5 8 L24.6 11.8"/></g></svg>`;
+const SVG_CHURU = `<svg viewBox="0 0 16 16" aria-hidden="true"><g transform="rotate(-35 8 8)"><rect x="5.2" y=".8" width="5.6" height="14.4" rx="1.8" fill="#ffc0a8"/><path d="M5.2 3.6 H10.8 V2.6 Q10.8 .8 9 .8 H7 Q5.2 .8 5.2 2.6Z" fill="#f2786a"/><rect x="6.5" y="6" width="3" height="5.4" rx="1" fill="#fff" opacity=".9"/><path d="M7.2 7.4 h1.6 M7.2 8.8 h1.6 M7.2 10.2 h1.6" stroke="#f2786a" stroke-width=".7"/></g></svg>`;
+const SVG_BELL = `<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="6.6" y="1.4" width="2.8" height="2.4" rx=".9" fill="#c99325"/><circle cx="8" cy="9.2" r="5.6" fill="#f7c948" stroke="#c99325" stroke-width=".9"/><path d="M2.5 8.4 H13.5" stroke="#c99325" stroke-width=".9"/><circle cx="8" cy="11.2" r="1.2" fill="#8f6214"/><path d="M8 11.4 V14.6" stroke="#8f6214" stroke-width="1.1"/><circle cx="5.8" cy="6.6" r="1.1" fill="#fff" opacity=".75"/></svg>`;
+const KIND_ICON = { birthday: "💛", anniv: "💛", expiry: SVG_FISHBONE, cycle: SVG_CHURU, plan: "🐾", etc: "🍌" };
+function iconEl(kindOrSvg, extra = "") {
+  const v = KIND_ICON[kindOrSvg] ?? kindOrSvg;
+  const e = document.createElement("span"); e.className = "ico " + (v.startsWith("<svg") ? "svg " : "") + extra;
+  if (v.startsWith("<svg")) e.innerHTML = v; else e.textContent = v;
+  e.setAttribute("aria-hidden", "true");
+  return e;
+}
+const bellEl = () => iconEl(SVG_BELL, "bell");
+
+// 항목마다 붙는 귀여운 이모지: 저장된 게 있으면 그것, 없으면 이름의 단어로 짐작 (AI 아님, 단어 짝 맞추기)
+const EMOJI_WORDS = [
+  [/마라톤|달리기|러닝|런닝|조깅/, "🏃"], [/생일|생신/, "🎂"], [/만난|사귄|연애|커플|데이트/, "💕"], [/결혼|웨딩|신혼/, "💍"],
+  [/병원|진료|검진|건강검진/, "🏥"], [/치과|스케일링/, "🦷"], [/접종|주사|백신/, "💉"], [/동물병원|중성화/, "🐱"],
+  [/여행|비행기|공항|출국/, "✈️"], [/캠핑/, "🏕️"], [/낚시/, "🎣"], [/등산|산행/, "⛰️"], [/바다|해수욕/, "🏖️"],
+  [/졸업/, "🎓"], [/입학|개학/, "🏫"], [/시험|자격증/, "📝"], [/면접|출근|회사|회의|출장/, "💼"],
+  [/공연|콘서트/, "🎤"], [/영화/, "🎬"], [/전시|미술관/, "🖼️"], [/파티|모임|회식/, "🥳"], [/제사|성묘|추석|설날/, "🙇"],
+  [/미용|헤어|머리/, "💇"], [/네일/, "💅"], [/이사/, "📦"], [/택배/, "📦"], [/청소/, "🧹"], [/빨래|세탁/, "🧺"],
+  [/자동차|차량|세차|정비|보험/, "🚗"], [/월세|관리비|요금|카드|납부|결제|세금/, "💳"],
+  [/우유|요거트|요구르트/, "🥛"], [/계란|달걀/, "🥚"], [/치즈/, "🧀"], [/버터/, "🧈"], [/빵|식빵/, "🍞"], [/케이크/, "🍰"],
+  [/고기|소고기|돼지|삼겹/, "🥩"], [/닭/, "🍗"], [/김치/, "🥬"], [/두부/, "🍲"], [/딸기/, "🍓"], [/사과/, "🍎"], [/바나나/, "🍌"],
+  [/귤|오렌지/, "🍊"], [/포도/, "🍇"], [/수박/, "🍉"], [/주스/, "🧃"], [/아이스크림/, "🍦"], [/약|영양제|비타민/, "💊"],
+];
+function guessEmoji(title) { for (const [re, e] of EMOJI_WORDS) if (re.test(title || "")) return e; return ""; }
+function emojiOf(it) { return typeof it.emoji === "string" ? it.emoji : guessEmoji(it.title); }
+function titleText(it) { const e = emojiOf(it); return (e ? e + " " : "") + it.title; }
+
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
 const DAY = 86400000;
 const SLEEPY_CAT = `<img class="emptycat" src="cat-loaf.webp" alt="">`;
@@ -490,17 +541,18 @@ let items = [];          // {id, kind, title, date, place, memo, fancy, on, off,
 let trash = [];          // {id, ...data, deletedAt}
 let group = null;        // 디데이 화면에서 고른 종류 (null 이면 종류 고르는 타일)
 const GROUPS = {
-  dday:   { label: "기념일",   icon: "💛", hint: "생일·기념일·특별한 날", kind: "birthday", match: (it) => it.kind === "birthday" || it.kind === "anniv" || it.fancy, k: "--c-birthday" },
-  expiry: { label: "유통기한", icon: "🥛", hint: "냉장고 속 먹거리", kind: "expiry", match: (it) => it.kind === "expiry", k: "--c-expiry" },
-  plan:   { label: "일정",     icon: "🗓️", hint: "약속·할 일", kind: "plan", match: (it) => it.kind === "plan", k: "--c-plan" },
-  cycle:  { label: "약",       icon: "💊", hint: "먹는 날·쉬는 날", kind: "cycle", match: (it) => it.kind === "cycle", k: "--c-cycle" },
-  etc:    { label: "기타",     icon: "📝", hint: "그 밖의 날", kind: "etc", match: (it) => it.kind === "etc", k: "--c-etc" },
+  dday:   { label: "기념일",   icon: "anniv", hint: "생일·기념일·특별한 날", kind: "birthday", match: (it) => it.kind === "birthday" || it.kind === "anniv" || it.fancy, k: "--c-birthday" },
+  expiry: { label: "유통기한", icon: "expiry", hint: "냉장고 속 먹거리", kind: "expiry", match: (it) => it.kind === "expiry", k: "--c-expiry" },
+  plan:   { label: "일정",     icon: "plan", hint: "약속·할 일", kind: "plan", match: (it) => it.kind === "plan", k: "--c-plan" },
+  cycle:  { label: "약",       icon: "cycle", hint: "먹는 날·쉬는 날", kind: "cycle", match: (it) => it.kind === "cycle", k: "--c-cycle" },
+  etc:    { label: "기타",     icon: "etc", hint: "그 밖의 날", kind: "etc", match: (it) => it.kind === "etc", k: "--c-etc" },
   done:   { label: "완료한 것", icon: "✅", hint: "다 먹은 것·끝난 것", kind: "expiry", match: () => false, k: "--c-anniv" },
 };
 let editing = null;
 let ready = false;
 let pendingDel = false;
-let photoData = "";      // 편집 창의 사진 (작게 줄인 JPEG data URL)
+let photoData = "";
+let emojiTouched = false;  // 이모지를 직접 고쳤으면 이름이 바뀌어도 자동으로 안 바꾼다      // 편집 창의 사진 (작게 줄인 JPEG data URL)
 let q = "";              // 찾기 글자
 let calMonth = null;     // 캘린더에 보이는 달의 1일
 let selDay = null;       // 캘린더에서 고른 날 (YYYY-MM-DD)
@@ -700,8 +752,8 @@ function renderSpot(rows) {
       fx.append(h);
     }
     if (it.photo) { const ph = document.createElement("img"); ph.className = "ph"; ph.src = it.photo; ph.alt = ""; card.append(ph); card.classList.add("has-ph"); }
-    const eb = document.createElement("div"); eb.className = "eyebrow"; eb.textContent = isToday ? "🎉 바로 오늘!" : `💛 ${ddSmall(it, c)}`;
-    const st = document.createElement("div"); st.className = "st"; st.textContent = it.title;
+    const eb = document.createElement("div"); eb.className = "eyebrow"; eb.textContent = isToday ? "🎉 바로 오늘!" : ddSmall(it, c);
+    const st = document.createElement("div"); st.className = "st"; st.textContent = titleText(it); if (it.important) st.append(bellEl());
     const big = document.createElement("div"); big.className = "sbig"; dateBig(big, whenOf(it, c, today()), today());
     const live = document.createElement("div"); live.className = "live";
     if (isToday) live.textContent = c.party || "";
@@ -781,11 +833,12 @@ function makeRow({ it, c }) {
   dateBig(dd, w, t);
   const sm = document.createElement("small"); sm.textContent = ddSmall(it, c); dd.append(sm);
   const info = document.createElement("div"); info.className = "info";
-  const ti = document.createElement("div"); ti.className = "t"; ti.textContent = (it.fancy ? "💛 " : "") + it.title;
+  const ti = document.createElement("div"); ti.className = "t"; ti.textContent = titleText(it);
+  if (it.important) ti.append(bellEl());
   if (it.photo) ti.prepend(thumb(it.photo));
   const su = document.createElement("div"); su.className = "s"; su.textContent = c.sub + (it.memo ? ` · ${it.memo}` : "");
   info.append(ti, su);
-  const pill = document.createElement("span"); pill.className = "pill k-" + it.kind; pill.textContent = KINDS[it.kind]?.label || "기타";
+  const pill = document.createElement("span"); pill.className = "pill k-" + it.kind; pill.append(iconEl(it.kind), KINDS[it.kind]?.label || "기타");
   row.append(dd, info, pill);
   clickable(row, it);
   row.setAttribute("aria-label", `${it.title}, ${w.getMonth() + 1}월 ${w.getDate()}일, ${c.big}, ${c.small}. 눌러서 고치기`);
@@ -813,7 +866,7 @@ function render() {
   const inCat = !!(group || words);
   $("cats").hidden = inCat; $("catView").hidden = !inCat;
   if (!inCat) { renderCats(rows, { today: dday, soonExp, expired }); return; }
-  $("catTitle").textContent = words ? `‘${q.trim()}’ 찾기` : `${GROUPS[group].icon} ${GROUPS[group].label}`;
+  if (words) $("catTitle").textContent = `‘${q.trim()}’ 찾기`; else $("catTitle").replaceChildren(iconEl(GROUPS[group].icon), " " + GROUPS[group].label);
   $("addBtn").hidden = group === "done" && !words;
   if (viewLocked()) { list.replaceChildren(lockedEmpty()); return; }
   if (!ready) return;
@@ -840,7 +893,7 @@ function renderCats(rows, n) {
     const mine = rows.filter((r) => g.match(r.it));
     const b = document.createElement("button"); b.type = "button"; b.className = "tile";
     b.style.setProperty("--k", `var(${g.k})`);
-    const ic = document.createElement("span"); ic.className = "ic"; ic.textContent = g.icon;
+    const ic = document.createElement("span"); ic.className = "ic"; ic.append(iconEl(g.icon));
     const lb = document.createElement("span"); lb.className = "lb"; lb.textContent = g.label;
     const hn = document.createElement("span"); hn.className = "hn"; hn.textContent = g.hint;
     const cnt = document.createElement("span"); cnt.className = "n"; cnt.textContent = key === "done" ? doneN : mine.length;
@@ -878,7 +931,7 @@ function doneRows() {
 // ---------------------------------------------------------------------
 function eventsBetween(start, end) {     // start~end(포함) 사이 날짜별 [{it, label}]
   const out = {};
-  const put = (d, it, label) => { if (d < start || d > end) return; (out[ymd(d)] ||= []).push({ it, label: it.done ? `✓ 완료 · ${label}` : label }); };
+  const put = (d, it, label) => { if (d < start || d > end) return; (out[ymd(d)] ||= []).push({ it, label: it.done ? `✓ 완료 · ${label}` : label, short: it.kind === "anniv" ? label.replace(" (1일)", "") : it.title }); };
   const plusDays = (b, n) => new Date(b.getFullYear(), b.getMonth(), b.getDate() + n);
   for (const it of items) {       // 완료한 것도 그날 칸에 흐리게 남겨서, 나중에 찾아볼 수 있게
     const base = parse(it.date);
@@ -929,8 +982,11 @@ function renderCal() {
     b.setAttribute("aria-label", `${d.getMonth() + 1}월 ${d.getDate()}일${list.length ? `, ${list.length}개` : ""}`);
     const n = document.createElement("span"); n.className = "n"; n.textContent = d.getDate();
     const tags = document.createElement("span"); tags.className = "tags";
-    for (const { it } of list.slice(0, 2)) {
-      const g = document.createElement("span"); g.className = "tag k-" + it.kind + (it.done ? " done" : ""); g.textContent = it.title; tags.append(g);
+    // 중요한 것과 기념일 숫자를 먼저 보이게
+    list.sort((a, b) => (b.it.important ? 1 : 0) - (a.it.important ? 1 : 0));
+    for (const { it, short } of list.slice(0, 2)) {
+      const g = document.createElement("span"); g.className = "tag k-" + it.kind + (it.done ? " done" : "");
+      g.append(iconEl(it.kind)); if (it.important) g.append(bellEl()); g.append(short); tags.append(g);
     }
     if (list.length > 2) { const more = document.createElement("span"); more.className = "more"; more.textContent = `+${list.length - 2}`; tags.append(more); }
     b.append(n, tags);
@@ -958,8 +1014,9 @@ function renderCal() {
   const rel = diff(t, sd);
   box.replaceChildren(...mine.map(({ it, label }) => {
     const r = document.createElement("div"); r.className = "crow" + (it.done ? " done-row" : "");
-    const pill = document.createElement("span"); pill.className = "pill k-" + it.kind; pill.textContent = KINDS[it.kind]?.label || "기타";
-    const ti = document.createElement("div"); ti.className = "t"; ti.textContent = (it.fancy ? "💛 " : "") + it.title;
+    const pill = document.createElement("span"); pill.className = "pill k-" + it.kind; pill.append(iconEl(it.kind), KINDS[it.kind]?.label || "기타");
+    const ti = document.createElement("div"); ti.className = "t"; ti.textContent = titleText(it);
+    if (it.important) ti.append(bellEl());
     if (it.photo) ti.prepend(thumb(it.photo));
     const sm = document.createElement("small"); sm.textContent = label + (it.memo ? ` · ${it.memo}` : ""); ti.append(sm);
     const rl = document.createElement("span"); rl.className = "rel"; rl.textContent = ddLabel(rel);
@@ -1092,6 +1149,9 @@ function openForm(it, date) {
   $("f-place").value = it?.place || "";
   $("f-memo").value = it?.memo || "";
   $("f-fancy").checked = !!it?.fancy;
+  $("f-important").checked = !!it?.important;
+  emojiTouched = typeof it?.emoji === "string";
+  $("f-emoji").value = it ? emojiOf(it) : "";
   photoData = it?.photo || ""; paintPhoto();
   $("f-on").value = it?.on ?? 21;
   $("f-off").value = it?.off ?? 7;
@@ -1119,7 +1179,7 @@ $("form").addEventListener("submit", async (e) => {
   if (!title) { $("f-title").focus(); toast("이름을 적어주세요."); return; }
   if (!parse(date)) { $("f-date").focus(); toast("날짜를 골라주세요."); return; }
   const kind = currentKind();
-  const body = { kind, title, date, place: kind === "expiry" ? $("f-place").value : "", memo: $("f-memo").value.trim(), fancy: $("f-fancy").checked, updatedAt: new Date().toISOString() };
+  const body = { kind, title, date, place: kind === "expiry" ? $("f-place").value : "", memo: $("f-memo").value.trim(), fancy: $("f-fancy").checked, important: $("f-important").checked, emoji: $("f-emoji").value.trim(), updatedAt: new Date().toISOString() };
   if (kind === "cycle") {
     const on = Math.round(Number($("f-on").value)), off = Math.round(Number($("f-off").value));
     if (!(on >= 1)) { $("f-on").focus(); toast("먹는 날 수를 1 이상으로 적어주세요."); return; }
@@ -1189,6 +1249,14 @@ $("f-photo").onchange = async () => {
     photoData = cv.toDataURL("image/jpeg", 0.8); paintPhoto();
   } catch { toast("이 사진은 열 수 없어요. 다른 사진을 골라주세요."); }
 };
+$("f-title").addEventListener("input", () => { if (!emojiTouched) $("f-emoji").value = guessEmoji($("f-title").value); });
+$("f-emoji").addEventListener("input", () => { emojiTouched = true; });
+$("emoChips").replaceChildren(...["🏃", "🎂", "💕", "🏥", "✈️", "🎓", "🥛", "🥚", "🍰", "🐱", "🎉", "⭐"].map((e) => {
+  const b = document.createElement("button"); b.type = "button"; b.textContent = e; b.setAttribute("aria-label", e + " 고르기");
+  b.onclick = () => { $("f-emoji").value = e; emojiTouched = true; };
+  return b;
+}));
+document.querySelector(".bellmark").replaceWith(bellEl());
 $("cancelBtn").onclick = closeForm;
 $("veil").addEventListener("click", (e) => { if (e.target === $("veil")) closeForm(); });
 $("lockVeil").addEventListener("click", (e) => { if (e.target === $("lockVeil")) $("lockCancel").onclick(); });
