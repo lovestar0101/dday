@@ -437,7 +437,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     <button class="add" id="dayAdd" type="button">+ 이 날에 추가</button>
   </div>
   <section class="list" id="dayList" aria-live="polite"></section>
-  <p class="note">옆으로 밀면 다른 달로 넘어가요. 생일·기념일은 해마다, 약 주기는 먹기 시작하는 날과 쉬기 시작하는 날에 표시돼요.</p>
+  <p class="note">옆으로 밀면 다른 달로 넘어가요. 생일·기념일은 해마다, 약은 먹기 시작하는 날과 마지막 먹는 날에 표시돼요.</p>
 </main>
 
 <main class="view" id="view-set" hidden>
@@ -712,7 +712,7 @@ function compute(it, t) {
     const at = (k) => new Date(t.getFullYear(), t.getMonth(), t.getDate() + k);
     if (pos < on) {
       const left = on - pos;
-      const nextTxt = off ? `${fmt(at(left))}부터 쉬어요 (${ddLabel(left)})` : "계속 먹어요";
+      const nextTxt = off ? `${fmt(at(left - 1))}까지 먹고 쉬어요` : "계속 먹어요";
       return { key: left, big: `${pos + 1}/${on}`, small: pos === 0 ? "오늘부터 먹기 시작" : left === 1 ? "오늘이 마지막 날" : "먹는 중",
         sub: `${round}번째 주기 · ${nextTxt}`, state: pos === 0 || left === 1 ? "today" : "" };
     }
@@ -958,7 +958,7 @@ function eventsBetween(start, end) {     // start~end(포함) 사이 날짜별 [
       for (let d = new Date(Math.max(base, start)); d <= end; d = plusDays(d, 1)) {
         const n = diff(base, d), pos = n % len, round = Math.floor(n / len) + 1;
         if (pos === 0) put(d, it, off ? `먹기 시작 (${round}번째)` : "먹기 시작");
-        else if (off && pos === on) put(d, it, "쉬기 시작");
+        if (off && pos === on - 1) put(d, it, `마지막 먹는 날 (${fmt(plusDays(d, 1)).slice(5)}부터 ${off}일 쉬기)`);
       }
     } else if (it.kind === "expiry") put(base, it, `유통기한 끝${it.place ? ` · ${it.place}` : ""}`);
     else put(base, it, KINDS[it.kind]?.label || "기타");
