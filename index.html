@@ -44,6 +44,7 @@
   --blanket: #dce8ee;
   --flower-a: #d9a7b8;
   --flower-b: #efd98f;
+  --wall: #f4eef1; --floor: #ebe3e6; --curtain: #ddd2d3; --sofa: #e9e4dc; --sofa-base: #9fb2c2; --collar: #c4544b;
   --bg-veil: color-mix(in srgb, var(--paper) 38%, transparent);
   --f-display: "Jua", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   --f-body: "Gowun Dodum", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
@@ -63,7 +64,7 @@
     --paper: #1d1920; --sheet: #28232c; --ink: #f3edf5; --muted: #ab9fb0; --line: #3b3441;
     --accent: #ff8fb3; --accent-ink: #2a1a21; --sat: #8fb0ff; --warn: #f5a447; --chip: #342d39;
     --cat: #d9a874; --cat-light: #efd7b4; --paw: rgba(255, 143, 179, .07);
-    --bed: #2b2620; --blanket: #27313a; --flower-a: #6d4a5a; --flower-b: #6a5d33; --bg-veil: color-mix(in srgb, var(--paper) 55%, transparent);
+    --bed: #2b2620; --blanket: #27313a; --flower-a: #6d4a5a; --flower-b: #f2dc8c; --wall: #232637; --floor: #1a1b25; --curtain: #36313d; --sofa: #4b4752; --sofa-base: #3d4c5c; --bg-veil: color-mix(in srgb, var(--paper) 55%, transparent);
     --c-birthday: #ff7fb0; --c-anniv: #b297ff; --c-expiry: #f5a447; --c-plan: #8fb0ff; --c-etc: #ab9fb0; --c-cycle: #4fd1bf;
     --spot-a: #e0558c; --spot-b: #e8806f; --spot-c: #9a72f0;
     color-scheme: dark;
@@ -73,7 +74,7 @@
   --paper: #1d1920; --sheet: #28232c; --ink: #f3edf5; --muted: #ab9fb0; --line: #3b3441;
   --accent: #ff8fb3; --accent-ink: #2a1a21; --sat: #8fb0ff; --warn: #f5a447; --chip: #342d39;
   --cat: #d9a874; --cat-light: #efd7b4; --paw: rgba(255, 143, 179, .07);
-  --bed: #2b2620; --blanket: #27313a; --flower-a: #6d4a5a; --flower-b: #6a5d33; --bg-veil: color-mix(in srgb, var(--paper) 55%, transparent);
+  --bed: #2b2620; --blanket: #27313a; --flower-a: #6d4a5a; --flower-b: #f2dc8c; --wall: #232637; --floor: #1a1b25; --curtain: #36313d; --sofa: #4b4752; --sofa-base: #3d4c5c; --bg-veil: color-mix(in srgb, var(--paper) 55%, transparent);
   --c-birthday: #ff7fb0; --c-anniv: #b297ff; --c-expiry: #f5a447; --c-plan: #8fb0ff; --c-etc: #ab9fb0; --c-cycle: #4fd1bf;
   --spot-a: #e0558c; --spot-b: #e8806f; --spot-c: #9a72f0;
   color-scheme: dark;
@@ -91,9 +92,18 @@ body {
                     radial-gradient(circle at 30px 8px, var(--paw) 3px, transparent 3.5px);
   background-size: 80px 80px;
 }
-/* 배경: 꽃무늬 이불 위에 쭉 뻗고 조는 된장색 고양이 그림 */
+/* 배경: 우리 고양이 그림 (밝은 모드·어두운 모드 다름) */
 .bgart { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
 .bgart svg { width: 100%; height: 100%; display: block; }
+/* 밝을 땐 식빵 굽는 고양이, 어두울 땐 소파에서 그루밍(똥꼬쭙쭙)하는 고양이 */
+.bgart .night { display: none; }
+@media (orientation: portrait) {   /* 세로 화면: 그림을 아래에 붙이고 고양이가 다 보이게 */
+  .bgart { background: linear-gradient(var(--wall) 70%, var(--floor) 70%); }
+  .bgart svg { position: absolute; left: 50%; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); width: 165%; height: auto; transform: translateX(-50%); }
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bgart .day { display: none; } :root:not([data-theme="light"]) .bgart .night { display: block; } }
+:root[data-theme="dark"] .bgart .day { display: none; }
+:root[data-theme="dark"] .bgart .night { display: block; }
 .bgart::after { content: ""; position: absolute; inset: 0; background: var(--bg-veil); }
 h1 { text-shadow: 0 1px 0 var(--paper), 0 0 10px var(--paper); }
 /* 설정 화면 버튼 */
@@ -304,51 +314,86 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 <body>
 
 <div class="bgart" aria-hidden="true">
-  <svg viewBox="0 0 1000 750" preserveAspectRatio="xMinYMid slice">
-    <defs>
-      <pattern id="flowers" width="90" height="90" patternUnits="userSpaceOnUse" patternTransform="rotate(-12)">
-        <g fill="var(--flower-a)" opacity=".75">
-          <circle cx="20" cy="20" r="6"/><circle cx="31" cy="20" r="6"/><circle cx="25.5" cy="11" r="6"/><circle cx="25.5" cy="29" r="6"/>
-        </g>
-        <circle cx="25.5" cy="20" r="3.5" fill="var(--flower-b)"/>
-        <g fill="var(--flower-b)" opacity=".8">
-          <circle cx="62" cy="62" r="5"/><circle cx="71" cy="62" r="5"/><circle cx="66.5" cy="55" r="5"/><circle cx="66.5" cy="69" r="5"/>
-        </g>
-        <path d="M40 48 q10 -8 18 0 M8 70 q8 6 16 0" stroke="var(--flower-a)" stroke-width="2.5" fill="none" opacity=".6" stroke-linecap="round"/>
-      </pattern>
-    </defs>
-    <rect width="1000" height="750" fill="var(--bed)"/>
-    <path d="M0 0 H700 C680 130 540 210 360 270 C220 315 90 390 0 450 Z" fill="var(--blanket)"/>
-    <path d="M0 0 H700 C680 130 540 210 360 270 C220 315 90 390 0 450 Z" fill="url(#flowers)"/>
-    <path d="M700 0 C680 130 540 210 360 270 C220 315 90 390 0 450" stroke="var(--cat-dark)" stroke-width="3" fill="none" opacity=".08"/>
-    <ellipse cx="640" cy="560" rx="460" ry="70" fill="var(--cat-dark)" opacity=".08"/>
-    <path class="cat-fur" d="M290 340 C330 205 560 120 770 105 C900 96 1010 125 1040 190 L1040 570 C900 610 700 590 560 548 C430 510 305 455 290 340 Z"/>
-    <path class="cat-stripe" d="M520 170 q30 60 10 130 M600 140 q35 70 15 160 M690 122 q35 80 20 180 M780 112 q30 90 18 200 M870 112 q25 95 15 210 M955 125 q20 90 10 210"/>
-    <path d="M420 470 Q600 560 820 560" stroke="var(--cat-light)" stroke-width="40" fill="none" stroke-linecap="round" opacity=".45"/>
-    <path d="M370 470 L160 680" stroke="var(--cat)" stroke-width="84" stroke-linecap="round"/>
-    <path d="M500 520 L345 715" stroke="var(--cat)" stroke-width="90" stroke-linecap="round"/>
-    <path class="cat-stripe" d="M300 520 q22 22 44 28 M255 565 q22 22 44 28 M210 610 q22 22 44 28 M455 585 q24 18 48 22 M420 630 q24 18 48 22 M390 672 q22 16 44 20"/>
-    <ellipse class="cat-paw" cx="150" cy="690" rx="50" ry="38" transform="rotate(-45 150 690)"/>
-    <ellipse class="cat-paw" cx="338" cy="722" rx="54" ry="38" transform="rotate(-52 338 722)"/>
-    <path class="cat-line" d="M118 690 q8 10 20 12 M140 712 q8 8 18 8 M306 718 q10 10 22 10 M330 742 q10 6 20 4" stroke-width="2.4" opacity=".55"/>
-    <g transform="rotate(-12 270 430)">
-      <ellipse cx="278" cy="440" rx="160" ry="130" fill="var(--cat-dark)" opacity=".13"/>
-      <path class="cat-fur" d="M145 360 C128 270 160 250 232 300 Z" stroke="var(--cat-dark)" stroke-opacity=".25" stroke-width="3" stroke-linejoin="round"/>
-      <path class="cat-fur" d="M308 300 C380 250 412 270 395 360 Z" stroke="var(--cat-dark)" stroke-opacity=".25" stroke-width="3" stroke-linejoin="round"/>
-      <path class="cat-in" d="M162 345 C152 288 172 276 214 306 Z"/>
-      <path class="cat-in" d="M326 306 C368 276 388 288 378 345 Z"/>
-      <ellipse class="cat-fur" cx="270" cy="430" rx="160" ry="130" stroke="var(--cat-dark)" stroke-opacity=".25" stroke-width="3"/>
-      <path class="cat-stripe" d="M270 312 v26 M246 318 l5 22 M294 318 l-5 22"/>
-      <path class="cat-line" d="M192 440 Q218 464 244 440 M296 440 Q322 464 348 440" stroke-width="6"/>
-      <ellipse class="cat-blush" cx="182" cy="478" rx="24" ry="13"/>
-      <ellipse class="cat-blush" cx="358" cy="478" rx="24" ry="13"/>
-      <ellipse class="cat-muzzle" cx="255" cy="485" rx="21" ry="16"/>
-      <ellipse class="cat-muzzle" cx="285" cy="485" rx="21" ry="16"/>
-      <path class="cat-in" d="M260 466 q10 -5 20 0 q-2 9 -10 12 q-8 -3 -10 -12 z"/>
-      <path class="cat-line" d="M270 478 v6 M270 484 q-7 8 -14 3 M270 484 q7 8 14 3" stroke-width="3"/>
-      <path d="M232 484 l-52 -8 M232 492 l-50 6 M308 484 l52 -8 M308 492 l50 6" stroke="var(--cat-dark)" stroke-opacity=".35" stroke-width="2.4" stroke-linecap="round"/>
-      <path class="cat-line" d="M270 540 v10" stroke-width="2"/>
-      <circle class="cat-tag" cx="270" cy="560" r="11"/>
+  <svg class="day" viewBox="0 0 1000 750" preserveAspectRatio="xMidYMid slice">
+    <rect width="1000" height="750" fill="var(--wall)"/>
+    <rect y="560" width="1000" height="190" fill="var(--floor)"/>
+    <path d="M0 560 H1000" stroke="var(--cat-dark)" stroke-opacity=".1" stroke-width="4"/>
+    <path d="M0 640 H1000 M120 560 L60 750 M330 560 L300 750 M540 560 L540 750 M750 560 L780 750 M950 560 L1010 750" stroke="var(--cat-dark)" stroke-opacity=".06" stroke-width="3"/>
+    <rect x="40" y="0" width="150" height="560" fill="var(--curtain)"/>
+    <path d="M70 0 V560 M110 0 V560 M150 0 V560" stroke="var(--cat-dark)" stroke-opacity=".07" stroke-width="6"/>
+    <ellipse cx="500" cy="612" rx="215" ry="24" fill="var(--cat-dark)" opacity=".12"/>
+    <path class="cat-fur" d="M300 606 C280 520 330 418 470 410 C610 402 700 470 702 606 Z" stroke="var(--cat-dark)" stroke-opacity=".22" stroke-width="3"/>
+    <path class="cat-stripe" d="M380 440 q20 30 10 70 M440 418 q22 36 12 82 M640 450 q-18 30 -8 70 M680 500 q-16 24 -8 56"/>
+    <path d="M330 600 Q440 628 560 606" stroke="var(--cat)" stroke-width="34" fill="none" stroke-linecap="round"/>
+    <path d="M330 600 Q440 628 560 606" stroke="var(--cat-dark)" stroke-opacity=".18" stroke-width="2" fill="none"/>
+    <path class="cat-stripe" d="M380 596 l-4 26 M430 604 l-2 26 M480 608 v24"/>
+    <g transform="translate(550 470) scale(1.0)">
+      <path class="cat-fur" d="M-84 -36 C-98 -96 -78 -112 -30 -80 Z" stroke="var(--cat-dark)" stroke-opacity=".25" stroke-width="3" stroke-linejoin="round"/>
+      <path class="cat-fur" d="M84 -36 C98 -96 78 -112 30 -80 Z" stroke="var(--cat-dark)" stroke-opacity=".25" stroke-width="3" stroke-linejoin="round"/>
+      <path class="cat-in" d="M-76 -46 C-84 -86 -72 -96 -42 -76 Z"/>
+      <path class="cat-in" d="M76 -46 C84 -86 72 -96 42 -76 Z"/>
+      <path class="cat-fur" d="M-104 4 C-104 -58 -58 -88 0 -88 C58 -88 104 -58 104 4 C104 58 62 88 0 88 C-62 88 -104 58 -104 4 Z" stroke="var(--cat-dark)" stroke-opacity=".25" stroke-width="3"/>
+      <path class="cat-stripe" d="M0 -84 v26 M-22 -80 l7 22 M22 -80 l-7 22 M-102 8 q15 0 26 6 M-100 26 q13 -1 24 3 M102 8 q-15 0 -26 6 M100 26 q-13 -1 -24 3"/>
+      <circle class="cat-eyeball" cx="-38" cy="-6" r="16"/><circle class="cat-eyeball" cx="38" cy="-6" r="16"/>
+      <ellipse class="cat-eye" cx="-37" cy="-3" rx="6.5" ry="10"/><ellipse class="cat-eye" cx="37" cy="-3" rx="6.5" ry="10"/>
+      <circle class="cat-shine" cx="-33" cy="-4" r="3"/><circle class="cat-shine" cx="41" cy="-4" r="3"/>
+      <path class="cat-fur" d="M-58 -26 H-18 V0 L-58 -12 Z"/><path class="cat-fur" d="M58 -26 H18 V0 L58 -12 Z"/>
+      <path class="cat-line" d="M-55 -12.5 L-21 -1 M55 -12.5 L21 -1" stroke-width="4"/>
+      <ellipse class="cat-blush" cx="-66" cy="30" rx="13" ry="7" opacity=".45"/><ellipse class="cat-blush" cx="66" cy="30" rx="13" ry="7" opacity=".45"/>
+      <ellipse class="cat-muzzle" cx="-13" cy="34" rx="17" ry="13"/><ellipse class="cat-muzzle" cx="13" cy="34" rx="17" ry="13"/>
+      <path class="cat-in" d="M-8 20 h16 l-8 9 z"/>
+      <path class="cat-line" d="M0 29 v6 M0 35 q-7 7 -14 3 M0 35 q7 7 14 3" stroke-width="3"/>
+      <path d="M-30 34 l-58 -8 M-30 42 l-56 7 M30 34 l58 -8 M30 42 l56 7" stroke="var(--paper)" stroke-opacity=".8" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M-50 76 Q0 98 50 76" stroke="var(--collar)" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <circle class="cat-tag" cx="0" cy="104" r="13"/><circle cx="0" cy="104" r="7" fill="none" stroke="var(--cat-dark)" stroke-opacity=".3" stroke-width="1.5"/>
+    </g>
+  </svg>
+  <svg class="night" viewBox="0 0 1000 750" preserveAspectRatio="xMidYMid slice">
+    <rect width="1000" height="750" fill="var(--wall)"/>
+    <rect x="700" y="0" width="300" height="750" fill="var(--curtain)"/>
+    <path d="M740 0 V750 M790 0 V750 M840 0 V750 M890 0 V750 M940 0 V750" stroke="#000" stroke-opacity=".12" stroke-width="8"/>
+    <circle cx="250" cy="150" r="46" fill="var(--flower-b)"/><circle cx="272" cy="136" r="42" fill="var(--wall)"/>
+    <g fill="var(--flower-b)"><circle cx="150" cy="90" r="3"/><circle cx="380" cy="70" r="2.5"/><circle cx="420" cy="190" r="3"/><circle cx="110" cy="240" r="2"/><circle cx="600" cy="110" r="2.5"/></g>
+    <rect y="680" width="1000" height="70" fill="var(--floor)"/>
+    <path d="M90 300 Q90 270 130 268 L640 262 Q690 262 690 310 L690 560 L90 560 Z" fill="var(--sofa)"/>
+    <path d="M380 266 V560" stroke="#000" stroke-opacity=".12" stroke-width="5"/>
+    <rect x="70" y="540" width="740" height="120" rx="40" fill="var(--sofa)"/>
+    <path d="M90 545 Q440 520 790 545" stroke="#000" stroke-opacity=".1" stroke-width="5" fill="none"/>
+    <path d="M440 548 V655" stroke="#000" stroke-opacity=".1" stroke-width="5"/>
+    <rect x="120" y="655" width="660" height="22" rx="8" fill="var(--sofa-base)"/>
+    <ellipse cx="500" cy="590" rx="170" ry="20" fill="#000" opacity=".15"/>
+    <path d="M586 560 L640 250" stroke="var(--cat)" stroke-width="58" stroke-linecap="round"/>
+    <path class="cat-stripe" d="M600 470 l26 6 M610 410 l26 6 M620 350 l26 6"/>
+    <ellipse class="cat-paw" cx="644" cy="232" rx="32" ry="26"/>
+    <g class="cat-in"><ellipse cx="644" cy="240" rx="11" ry="8"/><circle cx="628" cy="222" r="5"/><circle cx="644" cy="216" r="5"/><circle cx="660" cy="222" r="5"/></g>
+    <path class="cat-fur" d="M380 480 C370 380 440 330 520 335 C600 340 640 420 630 520 C622 585 560 600 500 598 C430 596 386 560 380 480 Z" stroke="var(--cat-dark)" stroke-opacity=".22" stroke-width="3"/>
+    <ellipse cx="505" cy="500" rx="62" ry="78" fill="var(--cat-light)" opacity=".8"/>
+    <path d="M590 585 Q660 600 690 640" stroke="var(--cat)" stroke-width="40" fill="none" stroke-linecap="round"/>
+    <path class="cat-stripe" d="M640 598 l-6 26 M672 616 l-14 20"/>
+    <path d="M420 560 Q400 600 440 618" stroke="var(--cat)" stroke-width="46" fill="none" stroke-linecap="round"/>
+    <ellipse class="cat-paw" cx="455" cy="620" rx="30" ry="24"/>
+    <g class="cat-in"><ellipse cx="458" cy="626" rx="10" ry="7"/><circle cx="442" cy="610" r="4.5"/><circle cx="456" cy="605" r="4.5"/><circle cx="470" cy="610" r="4.5"/></g>
+    <ellipse class="cat-paw" cx="478" cy="545" rx="20" ry="15" transform="rotate(20 478 545)"/>
+    <ellipse class="cat-paw" cx="518" cy="548" rx="20" ry="15" transform="rotate(-25 518 548)"/>
+    <g transform="translate(500 330) scale(0.85)">
+      <path class="cat-fur" d="M-84 -36 C-98 -96 -78 -112 -30 -80 Z" stroke="var(--cat-dark)" stroke-opacity=".25" stroke-width="3" stroke-linejoin="round"/>
+      <path class="cat-fur" d="M84 -36 C98 -96 78 -112 30 -80 Z" stroke="var(--cat-dark)" stroke-opacity=".25" stroke-width="3" stroke-linejoin="round"/>
+      <path class="cat-in" d="M-76 -46 C-84 -86 -72 -96 -42 -76 Z"/>
+      <path class="cat-in" d="M76 -46 C84 -86 72 -96 42 -76 Z"/>
+      <path class="cat-fur" d="M-104 4 C-104 -58 -58 -88 0 -88 C58 -88 104 -58 104 4 C104 58 62 88 0 88 C-62 88 -104 58 -104 4 Z" stroke="var(--cat-dark)" stroke-opacity=".25" stroke-width="3"/>
+      <path class="cat-stripe" d="M0 -84 v26 M-22 -80 l7 22 M22 -80 l-7 22 M-102 8 q15 0 26 6 M-100 26 q13 -1 24 3 M102 8 q-15 0 -26 6 M100 26 q-13 -1 -24 3"/>
+      <circle class="cat-eyeball" cx="-38" cy="-6" r="16"/><circle class="cat-eyeball" cx="38" cy="-6" r="16"/>
+      <ellipse class="cat-eye" cx="-37" cy="-3" rx="6.5" ry="10"/><ellipse class="cat-eye" cx="37" cy="-3" rx="6.5" ry="10"/>
+      <circle class="cat-shine" cx="-33" cy="-4" r="3"/><circle class="cat-shine" cx="41" cy="-4" r="3"/>
+      <path class="cat-fur" d="M-58 -26 H-18 V0 L-58 -12 Z"/><path class="cat-fur" d="M58 -26 H18 V0 L58 -12 Z"/>
+      <path class="cat-line" d="M-55 -12.5 L-21 -1 M55 -12.5 L21 -1" stroke-width="4"/>
+      <ellipse class="cat-blush" cx="-66" cy="30" rx="13" ry="7" opacity=".45"/><ellipse class="cat-blush" cx="66" cy="30" rx="13" ry="7" opacity=".45"/>
+      <ellipse class="cat-muzzle" cx="-13" cy="34" rx="17" ry="13"/><ellipse class="cat-muzzle" cx="13" cy="34" rx="17" ry="13"/>
+      <path class="cat-in" d="M-8 20 h16 l-8 9 z"/>
+      <path class="cat-line" d="M0 29 v6 M0 35 q-7 7 -14 3 M0 35 q7 7 14 3" stroke-width="3"/>
+      <path d="M-30 34 l-58 -8 M-30 42 l-56 7 M30 34 l58 -8 M30 42 l56 7" stroke="var(--paper)" stroke-opacity=".8" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M-50 76 Q0 98 50 76" stroke="var(--collar)" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <circle class="cat-tag" cx="0" cy="104" r="13"/><circle cx="0" cy="104" r="7" fill="none" stroke="var(--cat-dark)" stroke-opacity=".3" stroke-width="1.5"/>
     </g>
   </svg>
 </div>
