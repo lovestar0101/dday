@@ -145,7 +145,10 @@ h1 { text-shadow: 0 1px 0 var(--paper), 0 0 10px var(--paper); }
 .tile .ic .ico.svg svg { width: 30px; height: 30px; }
 .tile .ic .ico.svg svg[viewBox="0 0 26 16"] { width: 40px; height: 26px; }
 .day { position: relative; }
-.day .mark { position: absolute; top: 3px; right: 1px; font-size: 11px; }
+.day .dhead { display: flex; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 1px; max-width: 100%; }
+.day .mark { font-size: 15px; margin: -8px 0 0 -3px; flex: none; }
+.day .mark.svg svg { width: 16px; height: 16px; }
+.day .mark.svg svg[viewBox="0 0 26 16"] { width: 21px; height: 13px; }
 .day .mark.done { opacity: .45; }
 .pill .ico { margin-right: 3px; }
 .t .ico.bell, .st .ico.bell { margin-left: 4px; }
@@ -505,11 +508,11 @@ const KINDS = {
   plan:     { label: "일정", title: "무슨 일정?", date: "날짜", hint: "그날까지 남은 날을 세요." },
   etc:      { label: "기타", title: "이름", date: "날짜", hint: "그날까지 남은 날, 지나면 지난 날을 세요." },
 };
-// 종류 표시: 냥서랍·냥달력 어디서나 똑같이 (약=츄르, 기념일=노란 하트, 유통기한=생선 뼈, 일정=발도장, 기타=바나나, 중요=고양이 방울)
+// 종류 표시: 냥서랍·냥달력 어디서나 똑같이 (약=츄르, 기념일=뽀뽀하는 고양이, 유통기한=생선 뼈, 일정=발도장, 기타=바나나, 중요=고양이 방울)
 const SVG_FISHBONE = `<svg viewBox="0 0 26 16" aria-hidden="true"><path d="M1.5 8 Q3.5 2.8 7.2 4.8 L7.2 11.2 Q3.5 13.2 1.5 8Z" fill="#97a3b0"/><circle cx="4" cy="7.2" r="1" fill="#fff"/><g fill="none" stroke="#97a3b0" stroke-width="1.9" stroke-linecap="round"><path d="M7 8 H20.5"/><path d="M10 4.6 V11.4 M13.4 4.2 V11.8 M16.8 4.6 V11.4"/><path d="M20.5 8 L24.6 4.2 M20.5 8 L24.6 11.8"/></g></svg>`;
 const SVG_CHURU = `<svg viewBox="0 0 16 16" aria-hidden="true"><g transform="rotate(-35 8 8)"><rect x="5.2" y=".8" width="5.6" height="14.4" rx="1.8" fill="#ffc0a8"/><path d="M5.2 3.6 H10.8 V2.6 Q10.8 .8 9 .8 H7 Q5.2 .8 5.2 2.6Z" fill="#f2786a"/><rect x="6.5" y="6" width="3" height="5.4" rx="1" fill="#fff" opacity=".9"/><path d="M7.2 7.4 h1.6 M7.2 8.8 h1.6 M7.2 10.2 h1.6" stroke="#f2786a" stroke-width=".7"/></g></svg>`;
 const SVG_BELL = `<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="6.6" y="1.4" width="2.8" height="2.4" rx=".9" fill="#c99325"/><circle cx="8" cy="9.2" r="5.6" fill="#f7c948" stroke="#c99325" stroke-width=".9"/><path d="M2.5 8.4 H13.5" stroke="#c99325" stroke-width=".9"/><circle cx="8" cy="11.2" r="1.2" fill="#8f6214"/><path d="M8 11.4 V14.6" stroke="#8f6214" stroke-width="1.1"/><circle cx="5.8" cy="6.6" r="1.1" fill="#fff" opacity=".75"/></svg>`;
-const KIND_ICON = { birthday: "💛", anniv: "💛", expiry: SVG_FISHBONE, cycle: SVG_CHURU, plan: "🐾", etc: "🍌" };
+const KIND_ICON = { birthday: "😽", anniv: "😽", expiry: SVG_FISHBONE, cycle: SVG_CHURU, plan: "🐾", etc: "🍌" };
 function iconEl(kindOrSvg, extra = "") {
   const v = KIND_ICON[kindOrSvg] ?? kindOrSvg;
   const e = document.createElement("span"); e.className = "ico " + (v.startsWith("<svg") ? "svg " : "") + extra;
@@ -1000,7 +1003,8 @@ function renderCal() {
     b.setAttribute("aria-label", `${d.getMonth() + 1}월 ${d.getDate()}일${list.length ? `, ${list.length}개` : ""}`);
     const n = document.createElement("span"); n.className = "n"; n.textContent = d.getDate();
     const top = list.slice().sort((a, b) => (b.it.important ? 1 : 0) - (a.it.important ? 1 : 0))[0];
-    if (top) b.append(top.it.important ? iconEl(SVG_BELL, "mark") : iconEl(top.it.kind, "mark" + (top.it.done ? " done" : "")));
+    const head = document.createElement("span"); head.className = "dhead"; head.append(n);
+    if (top) head.append(top.it.important ? iconEl(SVG_BELL, "mark") : iconEl(top.it.kind, "mark" + (top.it.done ? " done" : "")));
     const tags = document.createElement("span"); tags.className = "tags";
     // 중요한 것과 기념일 숫자를 먼저 보이게
     list.sort((a, b) => (b.it.important ? 1 : 0) - (a.it.important ? 1 : 0));
@@ -1009,7 +1013,7 @@ function renderCal() {
       g.append(short); tags.append(g);
     }
     if (list.length > 2) { const more = document.createElement("span"); more.className = "more"; more.textContent = `+${list.length - 2}`; tags.append(more); }
-    b.append(n, tags);
+    b.append(head, tags);
     b.onclick = () => {
       selDay = key;
       if (d.getMonth() !== m) calMonth = new Date(d.getFullYear(), d.getMonth(), 1);
