@@ -330,7 +330,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     </div>
     <div class="intro">
       <h1>우리집 디데이<span class="nyang">냥</span></h1>
-      <div class="summary" id="summary"></div>
     </div>
   </header>
 
@@ -343,7 +342,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
   <section class="view" id="catView" hidden>
     <div class="catbar">
-      <button type="button" class="btn small" id="catBack">← 종류</button>
+      <button type="button" class="btn small" id="catBack">← 서랍</button>
       <h2 id="catTitle"></h2>
       <button class="add" id="addBtn" type="button">+ 추가</button>
     </div>
@@ -401,7 +400,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 <nav class="tabbar" aria-label="화면 바꾸기">
   <div class="in" role="tablist">
     <button type="button" role="tab" data-tab="cal"><span class="ico" aria-hidden="true">📅</span>캘린더</button>
-    <button type="button" role="tab" data-tab="list"><span class="ico" aria-hidden="true">📋</span>디데이<span class="badge" id="badge" hidden></span></button>
+    <button type="button" role="tab" data-tab="list"><span class="ico" aria-hidden="true">🗃️</span>서랍<span class="badge" id="badge" hidden></span></button>
     <button type="button" role="tab" data-tab="set"><span class="ico" aria-hidden="true">⚙️</span>설정</button>
   </div>
 </nav>
@@ -789,28 +788,6 @@ function makeRow({ it, c }) {
   return row;
 }
 
-// 오늘·내일 챙길 것: 맨 위에 짧게
-function renderTodo(rows) {
-  const pick = [];
-  for (const r of rows) {
-    const { it, c } = r;
-    if (it.kind === "cycle") {
-      if (c.state === "today") pick.push({ r, when: "오늘", w: 0 });
-      else if (c.small === "내일부터 다시 먹어요") pick.push({ r, when: "내일", w: 1 });
-    } else if (it.kind === "anniv") {
-      if (c.state === "today") pick.push({ r, when: "오늘", w: 0 });
-      else if (c.key === 1) pick.push({ r, when: "내일", w: 1 });
-    } else if (c.expired) pick.push({ r, when: "지남", w: -1 });
-    else if (c.key === 0) pick.push({ r, when: "오늘", w: 0 });
-    else if (c.key === 1) pick.push({ r, when: "내일", w: 1 });
-  }
-  // 머리에는 한 줄만: 눌러서 캘린더의 오늘로
-  const b = document.createElement("button"); b.type = "button";
-  if (pick.length) { b.className = "hot"; b.textContent = `🐾 챙길 것 ${pick.length}개`; b.title = pick.map((x) => `${x.when} ${x.r.it.title}`).join(", "); }
-  else b.textContent = "🐾 오늘은 여유롭다냥";
-  b.onclick = () => { const t = today(); calMonth = new Date(t.getFullYear(), t.getMonth(), 1); selDay = ymd(t); setTab("cal"); renderCal(); };
-  $("summary").replaceChildren(viewLocked() ? "" : b);
-}
 
 
 function render() {
@@ -823,7 +800,6 @@ function render() {
   const urgent = soonExp + expired;
   $("badge").hidden = !urgent; $("badge").textContent = urgent;
   $("badge").setAttribute("aria-label", `유통기한 임박·지남 ${urgent}개`);
-  renderTodo(rows);
   renderSpot(group === "dday" && !q.trim() ? rows : []);
   renderTrash();
   renderCal();
@@ -1183,7 +1159,7 @@ function setDone(it, done) {
     if (done) { body.done = true; body.doneAt = new Date().toISOString(); }
     try {
       await store.write({ ["events/" + id]: body, ["proof/" + id]: pw });
-      if (done) { closeForm(); toast("완료! 디데이 화면 ‘완료한 것’에 모아둘게요 (캘린더에도 남아요)"); }
+      if (done) { closeForm(); toast("완료! 서랍의 ‘완료한 것’에 모아둘게요 (캘린더에도 남아요)"); }
       else toast("목록으로 되돌렸다냥!");
     } catch (err) { failed(err); }
   });
