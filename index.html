@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="우리집 디데이">
-<meta name="theme-color" content="#fff5e8">
+<meta name="theme-color" content="#fffaf0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
@@ -20,19 +20,20 @@
 /* Layout: 달력 카드 위로 고양이가 빼꼼, 아래로 남은 날 순 목록. 둥근 모서리와 발바닥 무늬 */
 :root {
   color-scheme: light;
-  --paper: #fff5e8;
-  --sheet: #fffcf6;
-  --ink: #4b3426;
-  --muted: #9b7f6b;
-  --line: #f1dcc4;
-  --accent: #f0843a;
-  --accent-ink: #ffffff;
-  --sat: #5a8ad6;
-  --warn: #e0731a;
-  --chip: #fcebd6;
-  --blush: #f59a95;
-  --paw: rgba(240, 132, 58, .09);
-  --shadow: rgba(120, 72, 30, .16);
+  --paper: #fffaf0;
+  --sheet: #fffefa;
+  --ink: #5a4535;
+  --muted: #a08a76;
+  --line: #f5e5c8;
+  --accent: #ffbe76;
+  --accent-ink: #4a2c12;
+  --accent-text: #e8862f;
+  --sat: #6b96d6;
+  --warn: #e98a2c;
+  --chip: #fff0d2;
+  --blush: #f8b4a8;
+  --paw: rgba(255, 190, 118, .14);
+  --shadow: rgba(150, 100, 40, .14);
   --f-display: "Jua", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   --f-body: "Gowun Dodum", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   --c-birthday: #e5527f;
@@ -41,27 +42,27 @@
   --c-plan: #3f7cd8;
   --c-etc: #94806f;
   --c-cycle: #19897a;
-  --spot-a: #ffa357;
-  --spot-b: #ff8f88;
-  --spot-c: #f3be5c;
-  --spot-ink: #ffffff;
+  --spot-a: #fff0b8;
+  --spot-b: #ffd9a8;
+  --spot-c: #ffc6a0;
+  --spot-ink: #5a3a1e;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #231c26; --sheet: #2f2631; --ink: #fbeee0; --muted: #bea795; --line: #46394a;
-    --accent: #ffa45e; --accent-ink: #2b1a0e; --sat: #92b4ff; --warn: #ffb15e; --chip: #3b2f3e;
-    --blush: #e68a86; --paw: rgba(255, 164, 94, .06); --shadow: rgba(0, 0, 0, .35);
-    --c-birthday: #ff86b0; --c-anniv: #bb9bff; --c-expiry: #ffad5c; --c-plan: #92b4ff; --c-etc: #bea795; --c-cycle: #56d3c0;
-    --spot-a: #e47a38; --spot-b: #d9706c; --spot-c: #c8963a;
+    --paper: #25201b; --sheet: #312a23; --ink: #fbefdf; --muted: #c0aa92; --line: #483e33;
+    --accent: #ffc584; --accent-ink: #3a2410; --accent-text: #ffc584; --sat: #9dbcff; --warn: #ffbe6e; --chip: #3c3329;
+    --blush: #e6a197; --paw: rgba(255, 197, 132, .06); --shadow: rgba(0, 0, 0, .35);
+    --c-birthday: #ff9cbc; --c-anniv: #c3a6ff; --c-expiry: #ffbb70; --c-plan: #9dbcff; --c-etc: #c0aa92; --c-cycle: #6fd8c6;
+    --spot-a: #f7e09a; --spot-b: #f6c590; --spot-c: #f2ae88; --spot-ink: #4a2c12;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-    --paper: #231c26; --sheet: #2f2631; --ink: #fbeee0; --muted: #bea795; --line: #46394a;
-    --accent: #ffa45e; --accent-ink: #2b1a0e; --sat: #92b4ff; --warn: #ffb15e; --chip: #3b2f3e;
-    --blush: #e68a86; --paw: rgba(255, 164, 94, .06); --shadow: rgba(0, 0, 0, .35);
-    --c-birthday: #ff86b0; --c-anniv: #bb9bff; --c-expiry: #ffad5c; --c-plan: #92b4ff; --c-etc: #bea795; --c-cycle: #56d3c0;
-    --spot-a: #e47a38; --spot-b: #d9706c; --spot-c: #c8963a;
+    --paper: #25201b; --sheet: #312a23; --ink: #fbefdf; --muted: #c0aa92; --line: #483e33;
+    --accent: #ffc584; --accent-ink: #3a2410; --accent-text: #ffc584; --sat: #9dbcff; --warn: #ffbe6e; --chip: #3c3329;
+    --blush: #e6a197; --paw: rgba(255, 197, 132, .06); --shadow: rgba(0, 0, 0, .35);
+    --c-birthday: #ff9cbc; --c-anniv: #c3a6ff; --c-expiry: #ffbb70; --c-plan: #9dbcff; --c-etc: #c0aa92; --c-cycle: #6fd8c6;
+    --spot-a: #f7e09a; --spot-b: #f6c590; --spot-c: #f2ae88; --spot-ink: #4a2c12;
     color-scheme: dark;
 }
 :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -101,7 +102,7 @@ h1 { text-shadow: 0 1px 0 var(--paper), 0 0 10px var(--paper); }
 .tabbar .in { display: flex; width: 100%; max-width: 680px; }
 .tabbar button { flex: 1; font: inherit; font-size: 12px; background: none; border: 0; color: var(--muted); padding: 8px 0 7px; display: grid; justify-items: center; gap: 1px; cursor: pointer; position: relative; }
 .tabbar .ico { font-size: 22px; line-height: 1.15; filter: grayscale(.6); opacity: .75; }
-.tabbar button[aria-selected="true"] { color: var(--accent); font-family: var(--f-display); font-size: 13px; }
+.tabbar button[aria-selected="true"] { color: var(--accent-text); font-family: var(--f-display); font-size: 13px; }
 .tabbar button[aria-selected="true"] .ico { filter: none; opacity: 1; }
 .badge { position: absolute; top: 3px; left: calc(50% + 7px); background: var(--accent); color: var(--accent-ink); font-family: var(--f-display); font-size: 11px; min-width: 18px; height: 18px; line-height: 18px; border-radius: 999px; padding: 0 5px; }
 
@@ -110,7 +111,7 @@ h1 { text-shadow: 0 1px 0 var(--paper), 0 0 10px var(--paper); }
 .todo h2 { font-family: var(--f-display); font-weight: 400; font-size: 18px; margin: 0 0 2px; }
 .todo .ti { display: flex; gap: 10px; align-items: baseline; cursor: pointer; padding: 3px 0; border-radius: 8px; }
 .todo .ti:hover { background: color-mix(in srgb, var(--chip) 60%, transparent); }
-.todo .when { font-family: var(--f-display); color: var(--accent); min-width: 34px; flex: none; }
+.todo .when { font-family: var(--f-display); color: var(--accent-text); min-width: 34px; flex: none; }
 .todo .when.tmr { color: var(--warn); }
 .todo .what { min-width: 0; overflow-wrap: anywhere; }
 .todo .what small { color: var(--muted); margin-left: 6px; }
@@ -130,12 +131,12 @@ h1 { text-shadow: 0 1px 0 var(--paper), 0 0 10px var(--paper); }
 .calnav .btn { padding: 4px 12px; }
 .grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
 .wk { text-align: center; font-size: 12px; color: var(--muted); padding-bottom: 4px; }
-.wk.sun { color: var(--accent); } .wk.sat { color: var(--sat); }
+.wk.sun { color: var(--accent-text); } .wk.sat { color: var(--sat); }
 .day { font: inherit; background: none; border: 0; border-radius: 12px; min-height: 66px; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--ink); cursor: pointer; min-width: 0; }
 .day:hover { background: color-mix(in srgb, var(--chip) 50%, transparent); }
 .day.out { opacity: .38; }
 .day .n { font-size: 14px; width: 26px; height: 26px; line-height: 26px; border-radius: 50%; text-align: center; font-variant-numeric: tabular-nums; flex: none; }
-.day.sun .n { color: var(--accent); } .day.sat .n { color: var(--sat); }
+.day.sun .n { color: var(--accent-text); } .day.sat .n { color: var(--sat); }
 .day.today .n { background: var(--accent); color: var(--accent-ink); }
 .day[aria-pressed="true"] { background: var(--chip); box-shadow: inset 0 0 0 2px var(--line); }
 .day .tags { display: grid; gap: 2px; width: 100%; }
@@ -164,30 +165,35 @@ h1 { text-shadow: 0 1px 0 var(--paper), 0 0 10px var(--paper); }
 .card .ym { font-size: 13px; color: var(--muted); }
 .card .d { font-family: var(--f-display); font-size: 50px; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
 .card .w { font-size: 13px; color: var(--muted); }
-.card .sun { color: var(--accent); } .card .sat { color: var(--sat); }
+.card .sun { color: var(--accent-text); } .card .sat { color: var(--sat); }
 .intro { flex: 1; min-width: 210px; display: grid; gap: 6px; padding-bottom: 6px; }
 h1 { font-family: var(--f-display); font-weight: 400; font-size: 34px; line-height: 1.15; margin: 0; word-break: keep-all; }
-h1 .nyang { color: var(--accent); }
+h1 .nyang { color: var(--accent-text); }
 .summary { display: flex; flex-wrap: wrap; gap: 6px; }
 .summary span { background: var(--sheet); border: 1.5px solid var(--line); border-radius: 999px; padding: 3px 12px; font-size: 13px; color: var(--muted); }
 .summary b { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 400; font-family: var(--f-display); font-size: 15px; }
 .summary .hot { border-color: var(--accent); }
-.summary .hot b { color: var(--accent); }
+.summary .hot b { color: var(--accent-text); }
 
 /* 특별한 날 */
 .spot { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.spot-card { position: relative; overflow: hidden; aspect-ratio: 1 / 1; border-radius: 22px; padding: 14px 14px 12px; display: flex; flex-direction: column; color: var(--spot-ink); background: linear-gradient(135deg, var(--spot-a), var(--spot-b) 55%, var(--spot-c)); cursor: pointer; box-shadow: 0 10px 24px -14px var(--spot-a); }
+.spot-card { position: relative; overflow: hidden; min-height: 122px; border-radius: 20px; padding: 12px 13px 10px; display: flex; flex-direction: column; color: var(--spot-ink); background: linear-gradient(140deg, var(--spot-a), var(--spot-b) 60%, var(--spot-c)); cursor: pointer; box-shadow: 0 8px 18px -12px var(--shadow); border: 2px solid color-mix(in srgb, var(--spot-c) 60%, #fff); }
+.spot-card > img.ph { position: absolute; top: 10px; right: 10px; width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 3px 8px -3px var(--shadow); }
+.spot-card.has-ph .eyebrow, .spot-card.has-ph .st { padding-right: 58px; }
 .spot-card > :not(.fx) { position: relative; }
 .spot-card .eyebrow { font-size: 12px; opacity: .92; }
-.spot-card .st { font-family: var(--f-display); font-size: 17px; line-height: 1.25; margin-top: 2px; overflow-wrap: anywhere; }
-.spot-card .sbig { font-family: var(--f-display); font-size: clamp(34px, 10vw, 50px); line-height: 1; margin-top: auto; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(0, 0, 0, .08); white-space: nowrap; }
-.spot-card .live { font-variant-numeric: tabular-nums; font-size: 12.5px; min-height: 1.4em; margin-top: 4px; }
-.spot-card .ssub { font-size: 11.5px; opacity: .9; margin-top: 2px; line-height: 1.35; }
+.spot-card .st { font-family: var(--f-display); font-size: 16px; line-height: 1.25; margin-top: 2px; overflow-wrap: anywhere; }
+.spot-card .sbig { font-family: var(--f-display); font-size: clamp(26px, 7.5vw, 34px); line-height: 1; margin-top: auto; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(0, 0, 0, .08); white-space: nowrap; }
+.spot-card .live { font-variant-numeric: tabular-nums; font-size: 12px; min-height: 1.4em; margin-top: 2px; }
+.spot-card .ssub { font-size: 11px; opacity: .85; margin-top: 1px; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.thumb { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; vertical-align: -7px; margin-right: 6px; border: 2px solid var(--line); }
+.photorow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.photorow img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--line); }
 .fx { position: absolute; inset: 0; pointer-events: none; }
-.fx span { position: absolute; bottom: -24px; color: var(--spot-ink); opacity: 0; animation: floatUp 7s linear infinite; }
+.fx span { position: absolute; bottom: -24px; color: #fff; opacity: 0; animation: floatUp 7s linear infinite; }
 @keyframes floatUp {
   0% { transform: translateY(0) scale(.8); opacity: 0; }
-  15% { opacity: .55; }
+  15% { opacity: .8; }
   100% { transform: translateY(-260px) rotate(24deg) scale(1.15); opacity: 0; }
 }
 .party .fx span { animation-duration: 3.2s; }
@@ -215,7 +221,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .row:hover { background: color-mix(in srgb, var(--chip) 60%, transparent); }
 .dd { font-family: var(--f-display); font-size: 27px; line-height: 1.05; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dd small { display: block; font-family: var(--f-body); font-size: 12px; color: var(--muted); margin-top: 3px; }
-.dd.today { color: var(--accent); }
+.dd.today { color: var(--accent-text); }
 .dd.soon { color: var(--warn); }
 .dd.past { color: var(--muted); }
 .info { min-width: 0; }
@@ -230,7 +236,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .empty strong { color: var(--ink); font-family: var(--f-display); font-weight: 400; font-size: 19px; }
 .note { font-size: 13px; color: var(--muted); margin: 0; }
 .demo { background: var(--sheet); border: 2px dashed var(--accent); border-radius: 16px; padding: 10px 14px; font-size: 13px; }
-.demo b { color: var(--accent); font-weight: 400; font-family: var(--f-display); font-size: 15px; }
+.demo b { color: var(--accent-text); font-weight: 400; font-family: var(--f-display); font-size: 15px; }
 
 /* 지운 항목 */
 .trash { background: var(--sheet); border: 2px solid var(--line); border-radius: 18px; padding: 4px 16px; font-size: 14px; }
@@ -262,13 +268,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .btn { font: inherit; border-radius: 999px; padding: 8px 18px; cursor: pointer; border: 1.5px solid var(--line); background: var(--paper); color: var(--ink); }
 .btn.small { padding: 4px 12px; font-size: 13px; }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-family: var(--f-display); font-size: 16px; }
-.btn.danger { color: var(--accent); border-color: var(--accent); background: transparent; }
+.btn.danger { color: var(--accent-text); border-color: var(--accent); background: transparent; }
 #lockVeil { z-index: 15; }
 .field > label > span { font-size: 13px; color: var(--muted); }
 .pwrow { display: flex; gap: 8px; align-items: center; }
 .pwrow input { flex: 1; min-width: 0; }
 .pwrow .btn { white-space: nowrap; }
-.err { color: var(--accent); font-size: 13px; margin: 0; min-height: 1.2em; }
+.err { color: var(--accent-text); font-size: 13px; margin: 0; min-height: 1.2em; }
 .toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--sheet); padding: 9px 18px; border-radius: 999px; font-size: 14px; z-index: 20; max-width: calc(100% - 32px); }
 
 @media (max-width: 480px) {
@@ -414,7 +420,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
       <label class="field"><span>쉬는 날 수</span><input id="f-off" type="number" min="0" max="365" inputmode="numeric"></label>
     </div>
     <label class="field"><span>메모 (선택)</span><textarea id="f-memo" maxlength="200"></textarea></label>
-    <label class="check"><input type="checkbox" id="f-fancy"><span>💖 특별하게 꾸미기<small>맨 위에 카드로, 초 단위 카운트다운까지 보여줘요</small></span></label>
+    <div class="field"><span>사진 (선택) · 동그랗게 잘려서 보여요</span>
+      <div class="photorow"><img id="photoPrev" alt="고른 사진" hidden>
+        <button type="button" class="btn small" id="photoPick">📷 사진 고르기</button>
+        <button type="button" class="btn small" id="photoDel" hidden>사진 빼기</button>
+        <input type="file" id="f-photo" accept="image/*" hidden></div></div>
+    <label class="check"><input type="checkbox" id="f-fancy"><span>💛 특별하게 꾸미기<small>디데이 화면 맨 위에 카드로, 초 단위 카운트다운까지 보여줘요</small></span></label>
     <div class="actions">
       <button type="button" class="btn danger" id="delBtn" hidden>지우기</button>
       <button type="button" class="btn" id="doneBtn" hidden>✅ 다 했어요</button>
@@ -458,6 +469,7 @@ let filter = "all";
 let editing = null;
 let ready = false;
 let pendingDel = false;
+let photoData = "";      // 편집 창의 사진 (작게 줄인 JPEG data URL)
 let q = "";              // 찾기 글자
 let calMonth = null;     // 캘린더에 보이는 달의 1일
 let selDay = null;       // 캘린더에서 고른 날 (YYYY-MM-DD)
@@ -647,7 +659,7 @@ function renderSpot(rows) {
     card.className = "spot-card" + (isToday ? " party" : "");
     card.tabIndex = 0; card.setAttribute("role", "button");
     const fx = document.createElement("div"); fx.className = "fx"; fx.setAttribute("aria-hidden", "true");
-    const glyphs = isToday ? ["🎉", "✦", "♥", "🎂", "✧", "♥"] : ["♥", "✦", "♥", "✧", "♥"];
+    const glyphs = isToday ? ["🎉", "✦", "♥", "🎂", "✧", "♥"] : ["✦", "♥", "✧", "·", "♥"];
     for (let i = 0; i < 8; i++) {
       const h = document.createElement("span");
       h.textContent = glyphs[i % glyphs.length];
@@ -656,14 +668,15 @@ function renderSpot(rows) {
       h.style.fontSize = (10 + (i * 5) % 10) + "px";
       fx.append(h);
     }
-    const eb = document.createElement("div"); eb.className = "eyebrow"; eb.textContent = isToday ? "🎉 바로 오늘!" : "💖 두근두근";
+    if (it.photo) { const ph = document.createElement("img"); ph.className = "ph"; ph.src = it.photo; ph.alt = ""; card.append(ph); card.classList.add("has-ph"); }
+    const eb = document.createElement("div"); eb.className = "eyebrow"; eb.textContent = isToday ? "🎉 바로 오늘!" : "💛 두근두근";
     const st = document.createElement("div"); st.className = "st"; st.textContent = it.title;
     const big = document.createElement("div"); big.className = "sbig"; big.textContent = c.big;
     const live = document.createElement("div"); live.className = "live";
     if (isToday) live.textContent = c.party || "";
     else if (c.target) live.dataset.target = String(c.target.getTime());
     const sub = document.createElement("div"); sub.className = "ssub"; sub.textContent = c.sub + (it.memo ? ` · ${it.memo}` : "");
-    card.append(fx, eb, st, big, live, sub);
+    card.prepend(fx); card.append(eb, st, big, live, sub);
     card.onclick = () => edit(it);
     card.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); edit(it); } };
     return card;
@@ -723,13 +736,15 @@ function clickable(el, it) {
   el.onclick = () => edit(it);
   el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); edit(it); } };
 }
+function thumb(src) { const i = document.createElement("img"); i.className = "thumb"; i.src = src; i.alt = ""; return i; }
 function makeRow({ it, c }) {
   const row = document.createElement("div");
   row.className = "row" + (c.expired ? " expired" : "") + (it.fancy ? " fancy" : "");
   const dd = document.createElement("div"); dd.className = "dd " + (c.state || "");
   dd.textContent = c.big; const sm = document.createElement("small"); sm.textContent = c.small; dd.append(sm);
   const info = document.createElement("div"); info.className = "info";
-  const ti = document.createElement("div"); ti.className = "t"; ti.textContent = (it.fancy ? "💖 " : "") + it.title;
+  const ti = document.createElement("div"); ti.className = "t"; ti.textContent = (it.fancy ? "💛 " : "") + it.title;
+  if (it.photo) ti.prepend(thumb(it.photo));
   const su = document.createElement("div"); su.className = "s"; su.textContent = c.sub + (it.memo ? ` · ${it.memo}` : "");
   info.append(ti, su);
   const pill = document.createElement("span"); pill.className = "pill k-" + it.kind; pill.textContent = KINDS[it.kind]?.label || "기타";
@@ -910,7 +925,8 @@ function renderCal() {
   box.replaceChildren(...mine.map(({ it, label }) => {
     const r = document.createElement("div"); r.className = "crow";
     const pill = document.createElement("span"); pill.className = "pill k-" + it.kind; pill.textContent = KINDS[it.kind]?.label || "기타";
-    const ti = document.createElement("div"); ti.className = "t"; ti.textContent = (it.fancy ? "💖 " : "") + it.title;
+    const ti = document.createElement("div"); ti.className = "t"; ti.textContent = (it.fancy ? "💛 " : "") + it.title;
+    if (it.photo) ti.prepend(thumb(it.photo));
     const sm = document.createElement("small"); sm.textContent = label + (it.memo ? ` · ${it.memo}` : ""); ti.append(sm);
     const rl = document.createElement("span"); rl.className = "rel"; rl.textContent = ddLabel(rel);
     r.append(pill, ti, rl); clickable(r, it);
@@ -1040,6 +1056,7 @@ function openForm(it, date) {
   $("f-place").value = it?.place || "";
   $("f-memo").value = it?.memo || "";
   $("f-fancy").checked = !!it?.fancy;
+  photoData = it?.photo || ""; paintPhoto();
   $("f-on").value = it?.on ?? 21;
   $("f-off").value = it?.off ?? 7;
   $("delBtn").hidden = !it; $("delBtn").textContent = "지우기";
@@ -1073,6 +1090,7 @@ $("form").addEventListener("submit", async (e) => {
     if (!(off >= 0)) { $("f-off").focus(); toast("쉬는 날 수를 0 이상으로 적어주세요."); return; }
     body.on = on; body.off = off;
   }
+  if (photoData) body.photo = photoData;
   const id = editing || store.newId();
   $("saveBtn").disabled = true;
   try {
@@ -1115,6 +1133,26 @@ function setDone(it, done) {
   });
 }
 $("doneBtn").onclick = () => { const it = items.find((x) => x.id === editing); if (it) setDone(it, true); };
+// 사진: 고르면 가운데를 정사각형으로 잘라 400px JPEG로 줄여서 항목 안에 같이 저장 (30~50KB)
+function paintPhoto() {
+  $("photoPrev").hidden = !photoData; if (photoData) $("photoPrev").src = photoData;
+  $("photoDel").hidden = !photoData;
+  $("photoPick").textContent = photoData ? "📷 다른 사진" : "📷 사진 고르기";
+}
+$("photoPick").onclick = () => { $("f-photo").value = ""; $("f-photo").click(); };
+$("photoDel").onclick = () => { photoData = ""; paintPhoto(); };
+$("f-photo").onchange = async () => {
+  const f = $("f-photo").files[0]; if (!f) return;
+  try {
+    const url = URL.createObjectURL(f);
+    const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = url; });
+    const side = Math.min(img.naturalWidth, img.naturalHeight), S = Math.min(400, side);
+    const cv = document.createElement("canvas"); cv.width = cv.height = S;
+    cv.getContext("2d").drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, S, S);
+    URL.revokeObjectURL(url);
+    photoData = cv.toDataURL("image/jpeg", 0.8); paintPhoto();
+  } catch { toast("이 사진은 열 수 없어요. 다른 사진을 골라주세요."); }
+};
 $("cancelBtn").onclick = closeForm;
 $("veil").addEventListener("click", (e) => { if (e.target === $("veil")) closeForm(); });
 $("lockVeil").addEventListener("click", (e) => { if (e.target === $("lockVeil")) $("lockCancel").onclick(); });
