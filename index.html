@@ -310,7 +310,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .trash li small { color: var(--muted); }
 
 /* 냥바구니 */
-.cartrow { display: flex; align-items: center; gap: 12px; padding: 12px 14px 12px 18px; border-top: 1.5px solid var(--line); cursor: pointer; }
+.cartrow { display: flex; align-items: center; gap: 12px; padding: 12px 14px 12px 18px; border-top: 1.5px solid var(--line); }
+.cartrow input { cursor: pointer; }
 .cartrow:first-child { border-top: 0; }
 .cartrow input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; margin: 0; }
 .cartrow span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
@@ -1332,8 +1333,8 @@ function cartSave(updates) {
   return store.write(updates).catch(() => toast("저장이 안 됐어요. 다시 해 주세요."));
 }
 function cartRow(c) {
-  const l = document.createElement("label"); l.className = "cartrow" + (c.done ? " done" : "");
-  const box = document.createElement("input"); box.type = "checkbox"; box.checked = !!c.done;
+  const l = document.createElement("div"); l.className = "cartrow" + (c.done ? " done" : "");   // 글자를 눌러도 체크되지 않게 (체크칸만)
+  const box = document.createElement("input"); box.type = "checkbox"; box.checked = !!c.done; box.setAttribute("aria-label", c.title + " 샀어요");
   box.onchange = () => needUnlock(() => cartSave({ ["cart/" + c.id]: box.checked
     ? { title: c.title, createdAt: c.createdAt || "", done: true, doneAt: new Date().toISOString() }
     : { title: c.title, createdAt: c.createdAt || "", done: false } }));
