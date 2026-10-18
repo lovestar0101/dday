@@ -485,6 +485,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
         <span class="emochips" id="emoChips"></span></div></div>
     <label class="field"><span id="dateLabel">날짜</span><input id="f-date" type="date" required></label>
     <p class="hint" id="kindHint"></p>
+    <div class="two" id="lunarWrap">
+      <label class="check"><input type="checkbox" id="f-lunar"><span>🌙 음력 생일<small>날짜를 음력으로 골라요</small></span></label>
+      <label class="check" id="leapWrap"><input type="checkbox" id="f-leap"><span>윤달<small>윤달에 태어났으면</small></span></label>
+    </div>
     <label class="field" id="placeWrap"><span>보관 위치</span>
       <select id="f-place"><option value="">선택 안 함</option><option>냉장</option><option>냉동</option><option>실온</option><option>약통</option><option>기타</option></select>
     </label>
@@ -698,6 +702,30 @@ function onYear(base, y) {
   return new Date(y, m, Math.min(d, last));
 }
 
+// 음력 → 양력: 브라우저 내장 한국 음력(dangi) 달력으로 그 음력 해의 날짜표를 한 번 만들어 둔다
+const LUNAR_FMT = (() => { try { return new Intl.DateTimeFormat("en-u-ca-dangi", { year: "numeric", month: "numeric", day: "numeric", timeZone: "UTC" }); } catch { return null; } })();
+const lunarYears = {};
+function lunarToSolar(y, m, d, leap) {
+  if (!LUNAR_FMT) return null;
+  const map = lunarYears[y] ||= (() => {
+    const out = {};
+    for (let s = new Date(y, 0, 1); s < new Date(y + 1, 2, 1); s = new Date(s.getFullYear(), s.getMonth(), s.getDate() + 1)) {
+      const p = Object.fromEntries(LUNAR_FMT.formatToParts(Date.UTC(s.getFullYear(), s.getMonth(), s.getDate())).map((x) => [x.type, x.value]));
+      if (Number(p.relatedYear || p.year) === y) out[p.month.replace(/\D+$/, "L") + "-" + p.day] = s;   // 윤달은 "6L"
+    }
+    return out;
+  })();
+  const k = (mm) => map[mm + "-" + d] || map[mm + "-" + (d - 1)];   // 작은달이라 30일이 없으면 29일
+  return (leap && k(m + "L")) || k(String(m)) || null;              // 그해에 윤달이 없으면 평달
+}
+// 생일이 y년(음력 생일이면 음력 y년)에 돌아오는 양력 날짜
+function bdayOn(it, base, y) {
+  return (it.lunar && lunarToSolar(y, base.getMonth() + 1, base.getDate(), it.leap)) || onYear(base, y);
+}
+function nextBday(it, base, t) {   // 오늘 이후 가장 가까운 생일 {next, y}
+  for (let y = t.getFullYear() - 1; ; y++) { const next = bdayOn(it, base, y); if (next >= t) return { next, y }; }
+}
+
 function onMonth(base, y, m) { return new Date(y, m, Math.min(base.getDate(), new Date(y, m + 1, 0).getDate())); }
 function nextMonthly(base, t) {
   if (t <= base) return base;
@@ -709,12 +737,12 @@ function compute(it, t) {
   const base = parse(it.date);
   if (!base) return null;
   if (it.kind === "birthday") {
-    let next = onYear(base, t.getFullYear());
-    if (next < t) next = onYear(base, t.getFullYear() + 1);
+    const { next, y } = nextBday(it, base, t);
     const n = diff(t, next);
-    const age = next.getFullYear() - base.getFullYear();
+    const age = y - base.getFullYear();
+    const lunar = it.lunar ? `음력 ${it.leap ? "윤" : ""}${base.getMonth() + 1}월 ${base.getDate()}일 · ` : "";
     return { key: n, big: ddLabel(n), small: n === 0 ? "오늘 생일!" : `${next.getMonth() + 1}월 ${next.getDate()}일`,
-      sub: `${fmt(next)} · 만 ${age}살이 돼요`, state: n === 0 ? "today" : n <= 7 ? "soon" : "", target: next,
+      sub: `${fmt(next)} · ${lunar}만 ${age}살이 돼요`, state: n === 0 ? "today" : n <= 7 ? "soon" : "", target: next,
       party: "생일 축하해요! 🎂" };
   }
   if (it.kind === "anniv") {
@@ -858,7 +886,7 @@ function thumb(src) { const i = document.createElement("img"); i.className = "th
 // 날짜 중심: 크게는 '그날'(다음 생일·기념일, 유통기한, 일정, 약 바뀌는 날), 작게는 D-며칠
 function whenOf(it, c, t) {
   const base = parse(it.date);
-  if (it.kind === "birthday") { let n = onYear(base, t.getFullYear()); if (n < t) n = onYear(base, t.getFullYear() + 1); return n; }
+  if (it.kind === "birthday") return nextBday(it, base, t).next;
   if (it.kind === "anniv") return c.target || base;
   if (it.kind === "cycle" && it.repeat === "monthly") return nextMonthly(base, t);
   if (it.kind === "cycle") {
@@ -1003,9 +1031,9 @@ function eventsBetween(start, end) {     // start~end(포함) 사이 날짜별 [
     if (!base) continue;
     if (it.done && !["expiry", "plan", "etc"].includes(it.kind)) continue;
     if (it.kind === "birthday") {
-      for (let y = start.getFullYear(); y <= end.getFullYear(); y++) {
+      for (let y = start.getFullYear() - 1; y <= end.getFullYear(); y++) {   // 음력 생일은 전해 음력이 1월에 올 수 있어서 한 해 앞부터
         if (y < base.getFullYear()) continue;
-        put(onYear(base, y), it, y === base.getFullYear() ? "태어난 날" : `만 ${y - base.getFullYear()}살 생일`);
+        put(y === base.getFullYear() && !it.lunar ? base : bdayOn(it, base, y), it, y === base.getFullYear() ? "태어난 날" : `만 ${y - base.getFullYear()}살 생일`);
       }
     } else if (it.kind === "anniv") {
       for (let y = start.getFullYear(); y <= end.getFullYear(); y++) {
@@ -1149,8 +1177,9 @@ function cartRow(c) {
 }
 function renderCart() {
   if (viewLocked()) { $("cartList").replaceChildren(lockedEmpty()); $("cartDone").hidden = true; return; }
-  const todo = cart.filter((c) => !c.done).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
-  const got = cart.filter((c) => c.done).sort((a, b) => String(b.doneAt).localeCompare(String(a.doneAt)));
+  const abc = (a, b) => String(a.title).localeCompare(String(b.title), "ko");   // 가나다 순
+  const todo = cart.filter((c) => !c.done).sort(abc);
+  const got = cart.filter((c) => c.done).sort(abc);
   if (todo.length) $("cartList").replaceChildren(...todo.map(cartRow));
   else { const e = document.createElement("div"); e.className = "empty"; e.innerHTML = SLEEPY_CAT + "<strong>살 게 없다냥</strong>"; $("cartList").replaceChildren(e); }
   $("cartDone").hidden = !got.length;
@@ -1247,6 +1276,9 @@ function applyKind() {
   const k = KINDS[currentKind()];
   $("titleLabel").textContent = k.title; $("dateLabel").textContent = k.date; $("kindHint").textContent = k.hint;
   $("placeWrap").hidden = currentKind() !== "expiry";
+  $("lunarWrap").hidden = currentKind() !== "birthday";
+  $("leapWrap").hidden = !$("f-lunar").checked;
+  if (currentKind() === "birthday" && $("f-lunar").checked) { $("dateLabel").textContent = "태어난 날 (음력)"; $("kindHint").textContent = "음력 날짜로 골라요. 해마다 양력으로 바꿔서 다음 생일을 보여줘요."; }
   $("cycleWrap").hidden = currentKind() !== "cycle";
   const monthly = currentKind() === "cycle" && $("f-rep").value === "monthly";
   $("onWrap").hidden = $("offWrap").hidden = monthly;
@@ -1276,6 +1308,7 @@ function openForm(it, date) {
   $("f-rep").value = it?.repeat || "";
   $("f-on").value = it?.on ?? 21;
   $("f-off").value = it?.off ?? 7;
+  $("f-lunar").checked = !!it?.lunar; $("f-leap").checked = !!it?.leap;
   $("delBtn").hidden = !it; $("delBtn").textContent = "지우기";
   applyKind();
   paintDoneBtn(it);
@@ -1301,6 +1334,7 @@ $("form").addEventListener("submit", async (e) => {
   if (!parse(date)) { $("f-date").focus(); toast("날짜를 골라주세요."); return; }
   const kind = currentKind();
   const body = { kind, title, date, place: kind === "expiry" ? $("f-place").value : "", memo: $("f-memo").value.trim(), fancy: $("f-fancy").checked, important: $("f-important").checked, emoji: $("f-emoji").value.trim(), updatedAt: new Date().toISOString() };
+  if (kind === "birthday" && $("f-lunar").checked) { body.lunar = true; if ($("f-leap").checked) body.leap = true; }
   if (kind === "cycle" && $("f-rep").value === "monthly") body.repeat = "monthly";
   else if (kind === "cycle") {
     const on = Math.round(Number($("f-on").value)), off = Math.round(Number($("f-off").value));
@@ -1379,7 +1413,7 @@ $("emoChips").replaceChildren(...["🏃", "🎂", "💕", "🏥", "✈️", "�
   return b;
 }));
 document.querySelector(".bellmark").replaceWith(bellEl());
-$("f-rep").onchange = applyKind;
+$("f-rep").onchange = $("f-lunar").onchange = applyKind;
 $("cancelBtn").onclick = closeForm;
 $("veil").addEventListener("click", (e) => { if (e.target === $("veil")) closeForm(); });
 $("lockVeil").addEventListener("click", (e) => { if (e.target === $("lockVeil")) $("lockCancel").onclick(); });
