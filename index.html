@@ -337,6 +337,38 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .err { color: var(--accent-text); font-size: 13px; margin: 0; min-height: 1.2em; }
 .toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--sheet); padding: 9px 18px; border-radius: 999px; font-size: 14px; z-index: 20; max-width: calc(100% - 32px); }
 
+/* 냥지갑 */
+.wsum { display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; }
+.wbox { background: linear-gradient(140deg, var(--spot-a), var(--spot-b)); color: var(--spot-ink); border-radius: 20px; padding: 12px 14px; display: grid; gap: 2px; box-shadow: 0 8px 18px -12px var(--shadow); }
+.wbox.jar { background: var(--sheet); color: var(--ink); border: 2px solid var(--line); }
+.wbox span { font-size: 13px; opacity: .9; }
+.wbox b { font-family: var(--f-display); font-weight: 400; font-size: clamp(22px, 6.5vw, 30px); line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.wbtns .btn { padding: 7px 10px; }
+.wstats { display: grid; gap: 6px; font-size: 14px; }
+.wstats div { display: flex; justify-content: space-between; gap: 10px; }
+.wstats span { color: var(--muted); }
+.wstats b { text-align: right; font-weight: 400; font-family: var(--f-display); font-size: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wstats small { display: block; color: var(--muted); font-size: 12px; text-align: right; }
+.wcats { display: grid; gap: 5px; font-size: 13px; }
+.wcats div { display: grid; grid-template-columns: 74px 1fr auto; gap: 8px; align-items: center; }
+.wcats i { display: block; height: 10px; border-radius: 999px; background: var(--accent); min-width: 4px; }
+.crow .amt { font-family: var(--f-display); font-size: 17px; white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
+.crow .amt small { display: block; font-family: var(--f-body); font-size: 11.5px; color: var(--muted); }
+.crow .amt.plus { color: var(--c-cycle); }
+.crow .em { font-size: 22px; width: 30px; text-align: center; }
+.kinds.four { grid-template-columns: repeat(4, 1fr); }
+.wauto { display: grid; grid-template-columns: auto 1fr 1fr 1fr; gap: 6px 8px; align-items: center; font-size: 13px; }
+.wauto input { font: inherit; color: var(--ink); background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px; padding: 5px 8px; width: 100%; min-width: 0; }
+#wSet .inner { display: grid; gap: 12px; padding-bottom: 14px; }
+#wSet h3 { font-family: var(--f-display); font-weight: 400; font-size: 17px; margin: 0; }
+/* 새 소식 종 */
+.theme-btn { position: relative; }
+.theme-btn .badge { top: -6px; left: auto; right: -6px; }
+.news { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.news li { background: var(--paper); border: 1.5px solid var(--line); border-radius: 14px; padding: 8px 12px; overflow-wrap: anywhere; }
+.news li small { color: var(--muted); margin-right: 6px; }
+
 @media (max-width: 480px) {
   .row { grid-template-columns: 80px 1fr; padding: 12px 14px; }
   .row .pill { grid-column: 2; justify-self: start; }
@@ -351,6 +383,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 <body>
 
 <div class="topbtns">
+  <button class="theme-btn" id="bellBtn" type="button" aria-label="새 소식" hidden><span class="ico" aria-hidden="true">🔔</span><span class="txt">새 소식</span><span class="badge" id="bellN" hidden></span></button>
   <button class="theme-btn" id="lockBtn" type="button"><span class="ico" aria-hidden="true">🔒</span><span class="txt">잠김</span></button>
   <button class="theme-btn" id="themeBtn" type="button"><span class="ico" aria-hidden="true">🌙</span><span class="txt">어둡게</span></button>
 </div>
@@ -426,6 +459,50 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   </details>
 </main>
 
+<main class="view" id="view-wallet" hidden>
+  <section class="wsum">
+    <div class="wbox"><span>💰 냥지갑 남은 돈</span><b id="wBal">0원</b></div>
+    <div class="wbox jar"><span>🐷 냥저금통</span><b id="wJar">0원</b></div>
+  </section>
+  <div class="wbtns">
+    <button type="button" class="add" data-wnew="out">− 지출</button>
+    <button type="button" class="btn" data-wnew="in">+ 입금</button>
+    <button type="button" class="btn" data-wnew="save">🐷 저금통으로</button>
+    <button type="button" class="btn" data-wnew="take">저금통에서 꺼냄</button>
+  </div>
+  <section class="setbox">
+    <div class="calhead" style="padding: 0">
+      <h2 id="wTitle"></h2>
+      <div class="calnav">
+        <button type="button" class="btn small" id="wPrev" aria-label="지난달">◀</button>
+        <button type="button" class="btn small" id="wNow">이번 달</button>
+        <button type="button" class="btn small" id="wNext" aria-label="다음 달">▶</button>
+      </div>
+    </div>
+    <div class="wstats" id="wStats"></div>
+    <div class="wcats" id="wCats"></div>
+  </section>
+  <div class="filters" id="wFilter"></div>
+  <section class="list" id="wList" aria-live="polite"></section>
+  <details class="trash" id="wSet">
+    <summary>⚙️ 매달 자동 기록 · 시작 금액</summary>
+    <div class="inner">
+      <h3>매달 자동 기록</h3>
+      <p class="hint">그날이 되면 입금과 저금통 옮기기가 저절로 적혀요. 금액이 다른 달은 그 기록을 눌러서 고치면 돼요.</p>
+      <div class="wauto" id="wAuto"></div>
+      <button type="button" class="btn small" id="wAutoSave" style="justify-self: start">자동 기록 저장</button>
+      <h3>시작 금액</h3>
+      <p class="hint">냥지갑을 쓰기 시작한 날 통장에 있던 돈이에요. 은행 앱 잔액과 맞추는 기준이 돼요.</p>
+      <div class="two">
+        <label class="field"><span>냥지갑 (원)</span><input id="ws-wallet" inputmode="numeric" autocomplete="off"></label>
+        <label class="field"><span>냥저금통 (원)</span><input id="ws-jar" inputmode="numeric" autocomplete="off"></label>
+      </div>
+      <label class="field"><span>기준 날짜</span><input id="ws-date" type="date"></label>
+      <button type="button" class="btn small" id="wStartSave" style="justify-self: start">시작 금액 저장</button>
+    </div>
+  </details>
+</main>
+
 <main class="view" id="view-set" hidden>
   <section class="setbox">
     <h2>설정</h2>
@@ -452,6 +529,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     <button type="button" role="tab" data-tab="cal"><span class="ico" aria-hidden="true">📅</span>냥달력</button>
     <button type="button" role="tab" data-tab="list"><span class="ico" aria-hidden="true">🐱</span>냥서랍<span class="badge" id="badge" hidden></span></button>
     <button type="button" role="tab" data-tab="cart"><span class="ico" aria-hidden="true">🧺</span>냥바구니</button>
+    <button type="button" role="tab" data-tab="wallet"><span class="ico" aria-hidden="true">💰</span>냥지갑</button>
     <button type="button" role="tab" data-tab="set"><span class="ico" aria-hidden="true">⚙️</span>설정</button>
   </div>
 </nav>
@@ -472,6 +550,39 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
       </div>
     </div>
   </form>
+</div>
+
+<!-- 냥지갑 기록 창 -->
+<div class="veil" id="wVeil" hidden>
+  <form class="panel" id="wForm" novalidate>
+    <h2 id="wFormTitle">새 기록</h2>
+    <div class="kinds four" id="wTypes"></div>
+    <div class="two">
+      <label class="field"><span>날짜</span><input id="w-date" type="date" required></label>
+      <label class="field"><span>금액 (원)</span><input id="w-amt" inputmode="numeric" autocomplete="off" placeholder="예: 50000, 5만"></label>
+    </div>
+    <div class="field" id="wWhoWrap"><span>누가 넣었어?</span><div class="kinds" id="wWho"></div></div>
+    <div class="field" id="wSrcWrap"><span>어느 돈으로?</span><div class="kinds" id="wSrc"></div></div>
+    <div class="field" id="wForWrap"><span>누구 위해?</span><div class="kinds" id="wFor"></div></div>
+    <label class="field" id="wMemoWrap"><span id="wMemoLabel">뭐에 썼어?</span><input id="w-memo" maxlength="60" autocomplete="off" placeholder="예: 삼겹살 저녁"></label>
+    <label class="field" id="wCatWrap"><span>분류 (뭐에 썼는지 보고 자동으로 골라요)</span><select id="w-cat"></select></label>
+    <div class="actions">
+      <button type="button" class="btn danger" id="wDel" hidden>지우기</button>
+      <div class="right">
+        <button type="button" class="btn" id="wCancel">닫기</button>
+        <button type="submit" class="btn primary" id="wOk">저장</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- 새 소식 창 -->
+<div class="veil" id="newsVeil" hidden>
+  <div class="panel">
+    <h2>🔔 새 소식</h2>
+    <ul class="news" id="newsList"></ul>
+    <div class="actions"><div class="right"><button type="button" class="btn primary" id="newsOk">다 봤어요</button></div></div>
+  </div>
 </div>
 
 <!-- 편집 창 -->
@@ -577,6 +688,7 @@ const SLEEPY_CAT = `<img class="emptycat" src="cat-loaf.webp" alt="">`;
 let items = [];          // {id, kind, title, date, place, memo, fancy, on, off, done, doneAt}
 let trash = [];          // {id, ...data, deletedAt}
 let cart = [];           // 냥바구니 {id, title, done, createdAt, doneAt}
+let wallet = [], wauto = [], wReady = {};   // 냥지갑 기록, 매달 자동 기록
 let showAllPast = false;
 let group = null;        // 디데이 화면에서 고른 종류 (null 이면 종류 고르는 타일)
 const GROUPS = {
@@ -608,6 +720,10 @@ const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localSt
 // ---------------------------------------------------------------------
 const hasConfig = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL);
 let pw = lsGet("dday-pw");
+// 이 기기 표시: 내가 바꾼 건 🔔 새 소식에 안 뜨게
+const DEV = lsGet("dday-dev") || (() => { const d = Math.random().toString(36).slice(2, 10); lsSet("dday-dev", d); return d; })();
+const tagDev = (v) => (v && typeof v === "object" ? { ...v, dev: DEV } : v);
+const MORE = ["wallet", "wauto"];   // 냥지갑 기록, 매달 자동 기록 (v/<열쇠>/...)
 
 async function keyOf(p) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("dday-samkong:" + p));
@@ -623,20 +739,24 @@ function firebaseStore() {
   const rows = (s) => Object.entries(s.val() || {}).map(([id, d]) => ({ id, ...d }));
   return {
     newId: () => rdb.ref("events").push().key,
-    async listen(p, onItems, onTrash, onError, onCart) {
+    async listen(p, onItems, onTrash, onError, onCart, more = {}) {
       this.stop();
       key = await keyOf(p);
       refs = [rdb.ref(`v/${key}/events`), rdb.ref(`v/${key}/trash`), rdb.ref(`v/${key}/cart`)];
       refs[0].on("value", (s) => onItems(rows(s)), onError);
       refs[1].on("value", (s) => onTrash(rows(s)), onError);
       refs[2].on("value", (s) => onCart(rows(s)), onError);
+      for (const name of MORE) {
+        const r = rdb.ref(`v/${key}/${name}`); refs.push(r);
+        r.on("value", (s) => more[name]?.(rows(s)), () => {});
+      }
     },
     stop() { refs.forEach((r) => r.off()); refs = []; key = null; },
     async check(p) { await rdb.ref(`v/${await keyOf(p)}/events`).limitToFirst(1).get(); },
     write(updates) {
       const out = {};
       for (const [path, val] of Object.entries(updates)) {
-        out[/^(events|trash|cart)\//.test(path) ? `v/${key}/${path}` : path] = val;
+        out[/^(events|trash|cart|wallet|wauto)\//.test(path) ? `v/${key}/${path}` : path] = /^(events|cart|wallet)\//.test(path) ? tagDev(val) : val;
       }
       return rdb.ref().update(out);
     },
@@ -649,24 +769,27 @@ function demoStore() {
   try { db = JSON.parse(lsGet(KEY) || "null"); } catch { db = null; }
   if (!db) db = { events: demoSeed(), trash: {} };
   if (!db.cart) db.cart = {};
+  for (const name of MORE) db[name] ||= {};
   let listeners = null;
+  const rows = (o) => Object.entries(o).map(([id, d]) => ({ id, ...d }));
   const emit = () => {
     lsSet(KEY, JSON.stringify(db));
     if (!listeners) return;
-    listeners[0](Object.entries(db.events).map(([id, d]) => ({ id, ...d })));
-    listeners[1](Object.entries(db.trash).map(([id, d]) => ({ id, ...d })));
-    listeners[2](Object.entries(db.cart).map(([id, d]) => ({ id, ...d })));
+    listeners[0](rows(db.events));
+    listeners[1](rows(db.trash));
+    listeners[2](rows(db.cart));
+    for (const name of MORE) listeners[3][name]?.(rows(db[name]));
   };
   return {
     newId: () => "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-    async listen(p, onItems, onTrash, onError, onCart) { listeners = [onItems, onTrash, onCart]; setTimeout(emit, 0); },
+    async listen(p, onItems, onTrash, onError, onCart, more = {}) { listeners = [onItems, onTrash, onCart, more]; setTimeout(emit, 0); },
     stop() { listeners = null; },
     check: async (p) => { if (!p) throw new Error("empty"); },
     async write(updates) {
       for (const [path, val] of Object.entries(updates)) {
         const [root, id] = path.split("/");
         if (root === "proof") continue;
-        if (val === null) delete db[root][id]; else db[root][id] = val;
+        if (val === null) delete db[root][id]; else db[root][id] = root === "trash" || root === "wauto" ? val : tagDev(val);
       }
       emit();
     },
@@ -1143,7 +1266,7 @@ $("dayAdd").onclick = () => edit(null, selDay);
 // 아래 버튼 줄
 // ---------------------------------------------------------------------
 function setTab(name) {
-  const TABS = ["list", "cal", "cart", "set"];
+  const TABS = ["list", "cal", "cart", "wallet", "set"];
   if (!TABS.includes(name)) name = "cal";
   for (const b of document.querySelectorAll(".tabbar [data-tab]")) b.setAttribute("aria-selected", String(b.dataset.tab === name));
   for (const v of TABS) $("view-" + v).hidden = v !== name;
@@ -1202,6 +1325,289 @@ $("cartClear").onclick = () => {
 };
 
 // ---------------------------------------------------------------------
+// 냥지갑: 데이트 통장(냥지갑)·적금(냥저금통) 잔액 + 각자 지갑에서 상대·같이 위해 쓴 돈 기록
+// wallet/<id> = {type: in|save|take|out|start, date, amount, who, src, for, memo, cat, auto, at}
+//   in: who 가 냥지갑에 넣음 · save: 냥지갑 → 냥저금통 · take: 냥저금통 → 냥지갑
+//   out: src(냥지갑|재민|은별) 돈으로 for(같이|재민|은별) 위해 씀 — 냥지갑 돈일 때만 잔액에서 빠짐
+//   start: 시작 금액 (amount = 냥지갑, jar = 냥저금통)
+// wauto/<id> = {who, day, in, save, from: "YYYY-MM", upto: "YYYY-MM"} 매달 자동 기록
+// ---------------------------------------------------------------------
+const PEOPLE = ["재민", "은별"];
+const WTYPES = { out: "지출", in: "입금", save: "저금통으로", take: "저금통에서" };
+const WCATS = [
+  ["식비", "🍚", "밥 식사 저녁 점심 아침 고기 삼겹 갈비 치킨 피자 배달 떡볶이 국밥 초밥 회 햄버거 분식 술 맥주 소주 야식 라면 족발 보쌈 곱창 찌개"],
+  ["카페", "☕", "카페 커피 스타벅스 스벅 투썸 메가 빽다방 이디야 디저트 케이크 빵 베이커리 아이스크림 음료"],
+  ["데이트", "🎬", "영화 데이트 노래방 공연 전시 놀이 방탈출 볼링 게임 pc방 보드 콘서트 뮤지컬 사진"],
+  ["여행", "✈️", "여행 숙소 호텔 펜션 모텔 기차 ktx srt 비행기 항공 캠핑 리조트 렌트"],
+  ["낚시", "🎣", "낚시 미끼 채비 선상 좌대 낚싯 루어 찌"],
+  ["뷰티·옷", "💄", "화장품 올리브영 옷 신발 가방 미용 네일 헤어 머리 향수 쇼핑 무신사"],
+  ["선물", "🎁", "선물 꽃 생일 기념일"],
+  ["생활", "🏠", "생활 관리비 휴지 세제 마트 장보기 쿠팡 다이소 병원 약 고양이 모래 사료 통신 전기 가스"],
+  ["교통", "🚗", "주유 기름 택시 버스 지하철 주차 톨 하이패스 교통 세차"],
+  ["기타", "💸", ""],
+];
+const catEmoji = (c) => (WCATS.find((x) => x[0] === c) || WCATS[WCATS.length - 1])[1];
+function autoCat(memo) {
+  const m = String(memo).toLowerCase().replace(/\s+/g, "");
+  for (const [n, , words] of WCATS) if (words && words.split(" ").some((w) => m.includes(w))) return n;
+  return "기타";
+}
+function won(n) {
+  n = Math.round(n || 0); const a = Math.abs(n);
+  const s = a >= 10000 && a % 1000 === 0 ? `${String(a / 10000).replace(/(\.\d)\d+$/, "$1")}만 원` : `${a.toLocaleString("ko-KR")}원`;
+  return (n < 0 ? "−" : "") + s;
+}
+function parseWon(s) {   // "50000", "5만", "5만 3천", "1.5만", "12,000원"
+  s = String(s).replace(/[,\s원]/g, "");
+  if (!s) return NaN;
+  if (/^\d+(\.\d+)?$/.test(s)) return Math.round(Number(s));
+  const m = s.match(/^(?:(\d+(?:\.\d+)?)만)?(?:(\d+(?:\.\d+)?)천)?(\d+)?$/);
+  if (!m || !(m[1] || m[2] || m[3])) return NaN;
+  return Math.round((Number(m[1]) || 0) * 10000 + (Number(m[2]) || 0) * 1000 + (Number(m[3]) || 0));
+}
+const ym = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+let wMonth = ym(today()), wFilter = "all", wEditing = null;
+
+// 냥지갑·냥저금통에 미치는 영향 [냥지갑, 냥저금통]
+function wEffect(e) {
+  const a = Number(e.amount) || 0;
+  if (e.type === "start") return [a, Number(e.jar) || 0];
+  if (e.type === "in") return [a, 0];
+  if (e.type === "save") return [-a, a];
+  if (e.type === "take") return [a, -a];
+  if (e.type === "out" && e.src === "냥지갑") return [-a, 0];
+  return [0, 0];
+}
+const wOrder = (a, b) => String(a.date).localeCompare(String(b.date)) || (a.type === "start" ? -1 : b.type === "start" ? 1 : 0) || String(a.at).localeCompare(String(b.at));
+function wDesc(e) {
+  if (e.type === "in") return { em: "💵", t: `${e.who || ""} 입금${e.memo ? " · " + e.memo : ""}`, s: "냥지갑에 넣음" };
+  if (e.type === "save") return { em: "🐷", t: `냥저금통으로${e.memo ? " · " + e.memo : ""}`, s: "냥지갑 → 냥저금통" };
+  if (e.type === "take") return { em: "🐷", t: `저금통에서 꺼냄${e.memo ? " · " + e.memo : ""}`, s: "냥저금통 → 냥지갑" };
+  if (e.type === "start") return { em: "🏁", t: "시작 금액", s: `냥저금통 ${won(e.jar)}` };
+  const src = e.src === "냥지갑" ? "냥지갑" : `${e.src} 지갑`;
+  return { em: catEmoji(e.cat), t: e.memo || e.cat || "지출", s: `${src} · ${e.for === "같이" ? "같이" : e.for + " 위해"} · ${e.cat || "기타"}` };
+}
+function wSave(updates) {
+  return store.write(updates).then(() => true).catch(() => { toast("저장이 안 됐어요. 다시 해 주세요."); return false; });
+}
+
+// 매달 자동 기록: 처음 쓰면 기본값을 넣고, 날이 된 달마다 입금·저금통 기록을 만든다
+let autoBusy = false;
+function walletChanged() {
+  if (wReady.wallet && wReady.wauto && !autoBusy && (pw || !hasConfig)) {
+    const updates = {};
+    if (!wauto.length && !wallet.length) {   // 처음: 다음 달부터 (재민 1일, 은별 15일)
+      const t = today(), from = ym(new Date(t.getFullYear(), t.getMonth() + 1, 1));
+      updates["wauto/jaemin"] = { who: "재민", day: 1, in: 400000, save: 200000, from, upto: "" };
+      updates["wauto/eunbyeol"] = { who: "은별", day: 15, in: 300000, save: 100000, from, upto: "" };
+    }
+    const t = today(), now = ym(t);
+    for (const a of wauto) {
+      const [fy, fm] = String(a.from || now).split("-").map(Number), [uy, um] = String(a.upto || "").split("-").map(Number);
+      let d = new Date(fy, fm - 1, 1);
+      if (uy && um && new Date(uy, um, 1) > d) d = new Date(uy, um, 1);   // 이미 적은 달(upto) 다음 달부터
+      let last = null;
+      for (; ym(d) <= now; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) {
+        const day = Math.min(Math.max(1, Number(a.day) || 1), new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate());
+        if (ym(d) === now && t.getDate() < day) break;
+        const k = ym(d), date = `${k}-${String(day).padStart(2, "0")}`, at = new Date().toISOString(), base = `wallet/a-${a.id}-${k.replace("-", "")}`;
+        if (Number(a.in) > 0) updates[base + "-in"] = { type: "in", date, amount: Number(a.in), who: a.who, memo: "매달 자동", auto: a.id, at };
+        if (Number(a.save) > 0) updates[base + "-save"] = { type: "save", date, amount: Number(a.save), who: a.who, memo: `${a.who} 매달 자동`, auto: a.id, at };
+        last = k;
+      }
+      if (last) { const { id, ...rest } = a; updates["wauto/" + id] = { ...rest, upto: last }; }
+    }
+    if (Object.keys(updates).length) { autoBusy = true; store.write(updates).catch(() => {}).finally(() => { autoBusy = false; }); }
+  }
+  renderWallet(); paintBell();
+}
+
+function renderWallet() {
+  const [y, m] = wMonth.split("-").map(Number);
+  $("wTitle").innerHTML = `${m}월 <small>${y}</small>`;
+  if (viewLocked()) { $("wList").replaceChildren(lockedEmpty()); $("wStats").replaceChildren(); $("wCats").replaceChildren(); return; }
+  const all = wallet.slice().sort(wOrder);
+  let bal = 0, jar = 0; const after = {};
+  for (const e of all) { const [a, b] = wEffect(e); bal += a; jar += b; after[e.id] = bal; }
+  $("wBal").textContent = won(bal); $("wJar").textContent = won(jar);
+  // 이번 달 한눈에
+  const mine = all.filter((e) => String(e.date).startsWith(wMonth));
+  const sum = (f) => mine.filter(f).reduce((s, e) => s + (Number(e.amount) || 0), 0);
+  const outW = (who) => sum((e) => e.type === "out" && e.src === "냥지갑" && e.for === who);
+  const stat = (label, v, sub) => { const d = document.createElement("div"); d.innerHTML = `<span></span><b></b>`; d.firstChild.textContent = label; d.lastChild.textContent = v; if (sub) { const s = document.createElement("small"); s.textContent = sub; d.lastChild.append(s); } return d; };
+  const outAll = outW("같이") + outW("재민") + outW("은별");
+  $("wStats").replaceChildren(
+    stat("💵 들어온 돈", won(sum((e) => e.type === "in" || e.type === "take"))),
+    stat("🐷 저금통으로", won(sum((e) => e.type === "save"))),
+    stat("💰 냥지갑에서 쓴 돈", won(outAll), `같이 ${won(outW("같이"))} · 재민 ${won(outW("재민"))} · 은별 ${won(outW("은별"))}`),
+    ...PEOPLE.map((p) => stat(`💝 ${p} 지갑 → ${PEOPLE.find((o) => o !== p)}·같이`, won(sum((e) => e.type === "out" && e.src === p)))));
+  const cats = {};
+  for (const e of mine) if (e.type === "out") cats[e.cat || "기타"] = (cats[e.cat || "기타"] || 0) + (Number(e.amount) || 0);
+  const top = Object.entries(cats).sort((a, b) => b[1] - a[1]), max = top[0]?.[1] || 1;
+  $("wCats").replaceChildren(...top.map(([c, v]) => {
+    const d = document.createElement("div"), n = document.createElement("span"), bar = document.createElement("span"), i = document.createElement("i"), w = document.createElement("span");
+    n.textContent = `${catEmoji(c)} ${c}`; i.style.width = `${(v / max) * 100}%`; bar.append(i); w.textContent = won(v);
+    d.append(n, bar, w); return d;
+  }));
+  // 고르기
+  const F = { all: "전체", wallet: "냥지갑", 재민: "재민 지갑", 은별: "은별 지갑" };
+  $("wFilter").replaceChildren(...Object.entries(F).map(([k, v]) => {
+    const b = document.createElement("button"); b.type = "button"; b.textContent = v; b.setAttribute("aria-pressed", String(k === wFilter));
+    b.onclick = () => { wFilter = k; renderWallet(); }; return b;
+  }));
+  const shown = mine.filter((e) => wFilter === "all" || (wFilter === "wallet" ? e.type !== "out" || e.src === "냥지갑" : e.type === "out" && e.src === wFilter)).reverse();
+  if (!shown.length) { const e = document.createElement("div"); e.className = "empty"; e.innerHTML = SLEEPY_CAT + "<strong>이 달 기록이 없다냥</strong>"; $("wList").replaceChildren(e); }
+  else $("wList").replaceChildren(...shown.map((e) => {
+    const r = document.createElement("div"); r.className = "crow"; r.tabIndex = 0; r.setAttribute("role", "button");
+    const ds = wDesc(e), [a] = wEffect(e), dd = parse(e.date);
+    const em = document.createElement("span"); em.className = "em"; em.textContent = ds.em;
+    const t = document.createElement("span"); t.className = "t"; t.textContent = ds.t;
+    const s = document.createElement("small"); s.textContent = `${dd ? `${dd.getMonth() + 1}.${dd.getDate()} (${WEEK[dd.getDay()]})` : ""} · ${ds.s}`; t.append(s);
+    const am = document.createElement("span"); am.className = "amt" + (a > 0 ? " plus" : "");
+    am.textContent = e.type === "start" ? won(e.amount) : (a > 0 ? "+" : a < 0 ? "−" : "") + won(e.amount);
+    if (a) { const b = document.createElement("small"); b.textContent = `남은 돈 ${won(after[e.id])}`; am.append(b); }
+    r.append(em, t, am);
+    r.onclick = () => needUnlock(() => openWForm(e));
+    r.onkeydown = (k) => { if (k.key === "Enter" || k.key === " ") { k.preventDefault(); r.onclick(); } };
+    return r;
+  }));
+  // 설정: 매달 자동 기록, 시작 금액
+  $("wAuto").replaceChildren(...["", "날짜(일)", "입금", "저금통"].map((h) => { const s = document.createElement("small"); s.textContent = h; s.style.color = "var(--muted)"; return s; }),
+    ...wauto.slice().sort((a, b) => a.day - b.day).flatMap((a) => {
+      const n = document.createElement("span"); n.textContent = a.who;
+      const inp = (f, v) => { const i = document.createElement("input"); i.inputMode = "numeric"; i.value = v; i.dataset.id = a.id; i.dataset.f = f; return i; };
+      return [n, inp("day", a.day), inp("in", a.in), inp("save", a.save)];
+    }));
+  const st = wallet.find((e) => e.type === "start");
+  if (document.activeElement?.closest?.("#wSet") == null) {
+    $("ws-wallet").value = st ? st.amount : ""; $("ws-jar").value = st ? st.jar || 0 : ""; $("ws-date").value = st ? st.date : ymd(today());
+  }
+}
+$("wPrev").onclick = () => { const [y, m] = wMonth.split("-").map(Number); wMonth = ym(new Date(y, m - 2, 1)); renderWallet(); };
+$("wNext").onclick = () => { const [y, m] = wMonth.split("-").map(Number); wMonth = ym(new Date(y, m, 1)); renderWallet(); };
+$("wNow").onclick = () => { wMonth = ym(today()); renderWallet(); };
+$("wAutoSave").onclick = () => needUnlock(async () => {
+  const updates = {};
+  for (const i of $("wAuto").querySelectorAll("input")) {
+    const a = wauto.find((x) => x.id === i.dataset.id); if (!a) continue;
+    const { id, ...rest } = a, u = (updates["wauto/" + id] ||= { ...rest });
+    const v = i.dataset.f === "day" ? Math.round(Number(i.value)) : parseWon(i.value);
+    if (!(v >= (i.dataset.f === "day" ? 1 : 0)) || (i.dataset.f === "day" && v > 31)) { i.focus(); toast("숫자를 확인해 주세요."); return; }
+    u[i.dataset.f] = v;
+  }
+  if (await wSave(updates)) toast("자동 기록을 저장했다냥!");
+});
+$("wStartSave").onclick = () => needUnlock(async () => {
+  const a = parseWon($("ws-wallet").value), j = parseWon($("ws-jar").value || "0"), date = $("ws-date").value;
+  if (!(a >= 0)) { $("ws-wallet").focus(); toast("냥지갑 금액을 적어 주세요."); return; }
+  if (!(j >= 0)) { $("ws-jar").focus(); toast("냥저금통 금액을 확인해 주세요."); return; }
+  if (!parse(date)) { $("ws-date").focus(); toast("기준 날짜를 골라 주세요."); return; }
+  if (await wSave({ "wallet/start": { type: "start", date, amount: a, jar: j, memo: "", at: new Date().toISOString() } })) toast("시작 금액을 저장했다냥!");
+});
+
+// 기록 창
+function radios(box, name, opts, onchange) {
+  $(box).replaceChildren(...opts.map((o) => {
+    const l = document.createElement("label"), r = document.createElement("input"), sp = document.createElement("span");
+    r.type = "radio"; r.name = name; r.value = o; r.onchange = onchange; sp.textContent = WTYPES[o] && name === "wtype" ? WTYPES[o] : o;
+    l.append(r, sp); return l;
+  }));
+}
+const rv = (name) => document.querySelector(`input[name="${name}"]:checked`)?.value;
+const rset = (name, v) => { const r = document.querySelector(`input[name="${name}"][value="${v}"]`); if (r) r.checked = true; };
+let wCatTouched = false;
+function applyWType() {
+  const t = rv("wtype"), out = t === "out";
+  $("wWhoWrap").hidden = t !== "in";
+  $("wSrcWrap").hidden = $("wForWrap").hidden = $("wCatWrap").hidden = !out;
+  $("wMemoLabel").textContent = out ? "뭐에 썼어?" : "메모 (선택)";
+  $("w-memo").placeholder = out ? "예: 삼겹살 저녁" : "";
+  $("wFormTitle").textContent = (wEditing ? "고치기 · " : "") + { out: "지출 기록", in: "입금 기록", save: "냥저금통으로 옮기기", take: "냥저금통에서 꺼내기" }[t];
+  if (out) {   // 개인 지갑이면 '나 위해'는 빼기
+    const src = rv("wsrc") || "냥지갑", keep = rv("wfor");
+    const opts = src === "냥지갑" ? ["같이", ...PEOPLE] : ["같이", PEOPLE.find((p) => p !== src)];
+    radios("wFor", "wfor", opts);
+    rset("wfor", opts.includes(keep) ? keep : "같이");
+  }
+}
+function openWForm(e, type) {
+  wEditing = e ? e.id : null;
+  radios("wTypes", "wtype", Object.keys(WTYPES), applyWType);
+  radios("wWho", "wwho", PEOPLE);
+  radios("wSrc", "wsrc", ["냥지갑", ...PEOPLE], applyWType);
+  radios("wFor", "wfor", ["같이", ...PEOPLE]);
+  $("w-cat").replaceChildren(...WCATS.map(([n, em]) => { const o = document.createElement("option"); o.value = n; o.textContent = `${em} ${n}`; return o; }));
+  rset("wtype", e ? e.type : type || "out");
+  rset("wwho", e?.who || "재민"); rset("wsrc", e?.src || "냥지갑"); rset("wfor", e?.for || "같이");
+  $("w-date").value = e?.date || ymd(today());
+  $("w-amt").value = e ? e.amount : "";
+  $("w-memo").value = e?.memo || "";
+  $("w-cat").value = e?.cat || "기타"; wCatTouched = !!e?.cat;
+  $("wDel").hidden = !e; $("wDel").textContent = "지우기"; $("wDel").dataset.sure = "";
+  $("wTypes").hidden = e?.type === "start";
+  applyWType();
+  $("wVeil").hidden = false; $("w-amt").focus();
+}
+for (const b of document.querySelectorAll("[data-wnew]")) b.onclick = () => needUnlock(() => openWForm(null, b.dataset.wnew));
+$("w-memo").addEventListener("input", () => { if (!wCatTouched) $("w-cat").value = autoCat($("w-memo").value); });
+$("w-cat").onchange = () => { wCatTouched = true; };
+$("wCancel").onclick = () => { $("wVeil").hidden = true; wEditing = null; };
+$("wForm").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const type = rv("wtype"), amount = parseWon($("w-amt").value), date = $("w-date").value, memo = $("w-memo").value.trim().slice(0, 60);
+  if (!(amount > 0)) { $("w-amt").focus(); toast("금액을 적어 주세요. (예: 50000, 5만)"); return; }
+  if (!parse(date)) { $("w-date").focus(); toast("날짜를 골라 주세요."); return; }
+  const old = wallet.find((x) => x.id === wEditing);
+  if (old?.type === "start") return;   // 시작 금액은 설정에서
+  const body = { type, date, amount, memo, at: new Date().toISOString() };
+  if (old?.auto) body.auto = old.auto;
+  if (type === "in" || type === "save" || type === "take") body.who = type === "in" ? rv("wwho") : old?.who || "";
+  if (type === "out") {
+    if (!memo) { $("w-memo").focus(); toast("뭐에 썼는지 적어 주세요."); return; }
+    body.src = rv("wsrc"); body.for = rv("wfor"); body.cat = $("w-cat").value || autoCat(memo);
+  }
+  $("wOk").disabled = true;
+  if (await wSave({ ["wallet/" + (wEditing || store.newId())]: body })) { $("wVeil").hidden = true; wEditing = null; toast("적었다냥!"); }
+  $("wOk").disabled = false;
+});
+$("wDel").onclick = async () => {
+  if (!$("wDel").dataset.sure) { $("wDel").dataset.sure = "1"; $("wDel").textContent = "정말 지울까요?"; return; }
+  if (wEditing && await wSave({ ["wallet/" + wEditing]: null })) { $("wVeil").hidden = true; wEditing = null; toast("지웠다냥"); }
+};
+
+// ---------------------------------------------------------------------
+// 🔔 새 소식: 마지막으로 본 뒤 다른 기기(또는 Claude)가 새로 넣거나 바꾼 것
+// ---------------------------------------------------------------------
+function newsList() {
+  let seen = lsGet("dday-seen");
+  if (!seen) { seen = new Date().toISOString(); lsSet("dday-seen", seen); }
+  const out = [];
+  const fresh = (x, ...stamps) => x.dev !== DEV && stamps.some((s) => s && String(s) > seen);
+  for (const it of items) if (fresh(it, it.updatedAt)) {
+    const d = parse(it.date);
+    out.push([it.updatedAt, "냥서랍", `${emojiOf(it) || ""} ${it.title}${d ? ` (${KINDS[it.kind]?.label || ""} ${d.getMonth() + 1}.${d.getDate()})` : ""}${it.done ? " · 완료" : ""}`.trim()]);
+  }
+  for (const c of cart) if (fresh(c, c.createdAt, c.doneAt)) out.push([c.doneAt || c.createdAt, "냥바구니", `${c.title}${c.done ? " · 샀어요" : ""}`]);
+  for (const e of wallet) if (fresh(e, e.at)) { const ds = wDesc(e); out.push([e.at, "냥지갑", `${ds.em} ${ds.t} ${won(e.amount)}`]); }
+  return out.sort((a, b) => String(b[0]).localeCompare(String(a[0])));
+}
+function paintBell() {
+  const on = !viewLocked() && ready;
+  $("bellBtn").hidden = !on;
+  if (!on) return;
+  const n = newsList().length;
+  $("bellN").hidden = !n; $("bellN").textContent = n > 99 ? "99+" : n;
+}
+$("bellBtn").onclick = () => {
+  const list = newsList();
+  $("newsList").replaceChildren(...(list.length ? list.map(([, where, what]) => {
+    const li = document.createElement("li"), s = document.createElement("small"); s.textContent = where; li.append(s, what); return li;
+  }) : [Object.assign(document.createElement("li"), { textContent: "새로 바뀐 게 없다냥 🐱" })]));
+  $("newsVeil").hidden = false;
+};
+$("newsOk").onclick = () => { lsSet("dday-seen", new Date().toISOString()); $("newsVeil").hidden = true; paintBell(); };
+
+// ---------------------------------------------------------------------
 // 가족 비밀번호
 // ---------------------------------------------------------------------
 let afterUnlock = null;
@@ -1250,12 +1656,14 @@ function lockedOut() {      // 서버가 비밀번호를 거절함 (비밀번호
 }
 function startListening() {
   store.listen(pw,
-    (list) => { items = list.sort((a, b) => String(a.title).localeCompare(String(b.title), "ko")); ready = true; render(); },   // 날짜가 같으면 가나다 순
+    (list) => { items = list.sort((a, b) => String(a.title).localeCompare(String(b.title), "ko")); ready = true; render(); paintBell(); },   // 날짜가 같으면 가나다 순
     (list) => { trash = list; render(); },
     () => lockedOut(),
-    (list) => { cart = list; renderCart(); });
+    (list) => { cart = list; renderCart(); paintBell(); },
+    { wallet: (list) => { wallet = list; wReady.wallet = true; walletChanged(); },
+      wauto: (list) => { wauto = list; wReady.wauto = true; walletChanged(); } });
 }
-function showLocked() { store.stop(); items = []; trash = []; cart = []; ready = true; render(); renderCart(); }
+function showLocked() { store.stop(); items = []; trash = []; cart = []; wallet = []; wauto = []; wReady = {}; ready = true; render(); renderCart(); renderWallet(); }
 const viewLocked = () => hasConfig && !pw;
 
 // ---------------------------------------------------------------------
