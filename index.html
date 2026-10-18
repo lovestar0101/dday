@@ -267,7 +267,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .row:first-child { border-top: 0; }
 .row:hover { background: color-mix(in srgb, var(--chip) 60%, transparent); }
 .dd { font-family: var(--f-display); font-size: 27px; line-height: 1.05; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.dd small { display: block; font-family: var(--f-display); font-size: 14px; color: var(--muted); margin-top: 4px; }
+.dd small { display: block; font-family: var(--f-display); font-size: 14px; color: var(--muted); margin-top: 4px;  white-space: normal; line-height: 1.25; }
 .dd .wd { font-family: var(--f-body); font-size: 13px; color: var(--muted); margin-left: 2px; }
 .dd .yr { display: block; font-family: var(--f-body); font-size: 11px; color: var(--muted); margin-bottom: 1px; }
 .dd.today small { color: var(--accent-text); }
@@ -489,8 +489,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
       <select id="f-place"><option value="">선택 안 함</option><option>냉장</option><option>냉동</option><option>실온</option><option>약통</option><option>기타</option></select>
     </label>
     <div class="two" id="cycleWrap">
-      <label class="field"><span>먹는 날 수</span><input id="f-on" type="number" min="1" max="365" inputmode="numeric"></label>
-      <label class="field"><span>쉬는 날 수</span><input id="f-off" type="number" min="0" max="365" inputmode="numeric"></label>
+      <label class="field" style="grid-column: 1 / -1"><span>반복</span>
+        <select id="f-rep"><option value="">며칠 먹고 며칠 쉬기</option><option value="monthly">매달 같은 날 (예: 심장사상충 매달 1일)</option></select></label>
+      <label class="field" id="onWrap"><span>먹는 날 수</span><input id="f-on" type="number" min="1" max="365" inputmode="numeric"></label>
+      <label class="field" id="offWrap"><span>쉬는 날 수</span><input id="f-off" type="number" min="0" max="365" inputmode="numeric"></label>
     </div>
     <label class="field"><span>메모 (선택)</span><textarea id="f-memo" maxlength="200"></textarea></label>
     <div class="field"><span>사진 (선택) · 동그랗게 잘려서 보여요</span>
@@ -696,6 +698,13 @@ function onYear(base, y) {
   return new Date(y, m, Math.min(d, last));
 }
 
+function onMonth(base, y, m) { return new Date(y, m, Math.min(base.getDate(), new Date(y, m + 1, 0).getDate())); }
+function nextMonthly(base, t) {
+  if (t <= base) return base;
+  let d = onMonth(base, t.getFullYear(), t.getMonth());
+  if (d < t) d = onMonth(base, t.getFullYear(), t.getMonth() + 1);
+  return d;
+}
 function compute(it, t) {
   const base = parse(it.date);
   if (!base) return null;
@@ -726,6 +735,11 @@ function compute(it, t) {
     return { key: Math.min(n100, nY), big: `${days.toLocaleString()}일`, small: isToday ? "오늘이 기념일!" : "째",
       sub: `${fmt(base)}부터 · ${nextTxt}`, state: isToday ? "today" : "", target: n100 <= nY ? d100 : dY,
       party: "축하해요! 💐" };
+  }
+  if (it.kind === "cycle" && it.repeat === "monthly") {   // 매달 같은 날 (예: 심장사상충 매달 1일)
+    const next = nextMonthly(base, t), n = diff(t, next);
+    return { key: n, big: ddLabel(n), small: n === 0 ? "오늘 하는 날" : `매달 ${base.getDate()}일`,
+      sub: `매달 ${base.getDate()}일 · 다음은 ${fmt(next)}`, state: n === 0 ? "today" : n <= 3 ? "soon" : "", target: n > 0 ? next : null };
   }
   if (it.kind === "cycle") {
     const on = Math.max(1, Math.round(Number(it.on) || 21)), off = Math.max(0, Math.round(Number(it.off) || 0));
@@ -846,6 +860,7 @@ function whenOf(it, c, t) {
   const base = parse(it.date);
   if (it.kind === "birthday") { let n = onYear(base, t.getFullYear()); if (n < t) n = onYear(base, t.getFullYear() + 1); return n; }
   if (it.kind === "anniv") return c.target || base;
+  if (it.kind === "cycle" && it.repeat === "monthly") return nextMonthly(base, t);
   if (it.kind === "cycle") {
     const on = Math.max(1, Math.round(Number(it.on) || 21)), off = Math.max(0, Math.round(Number(it.off) || 0)), d = diff(base, t);
     if (d < 0 || !off) return d < 0 ? base : t;
@@ -999,6 +1014,10 @@ function eventsBetween(start, end) {     // start~end(포함) 사이 날짜별 [
       }
       const from = Math.max(1, Math.ceil((diff(base, start) + 1) / 100)), to = Math.floor((diff(base, end) + 1) / 100);
       for (let k = from; k <= to; k++) put(plusDays(base, k * 100 - 1), it, `${k * 100}일`);
+    } else if (it.kind === "cycle" && it.repeat === "monthly") {
+      for (let y = start.getFullYear(), m = start.getMonth(); new Date(y, m, 1) <= end; m++) {
+        const d = onMonth(base, y, m); if (d >= base) put(d, it, `매달 ${base.getDate()}일`);
+      }
     } else if (it.kind === "cycle") {
       const on = Math.max(1, Math.round(Number(it.on) || 21)), off = Math.max(0, Math.round(Number(it.off) || 0)), len = on + off;
       for (let d = new Date(Math.max(base, start)); d <= end; d = plusDays(d, 1)) {
@@ -1229,6 +1248,9 @@ function applyKind() {
   $("titleLabel").textContent = k.title; $("dateLabel").textContent = k.date; $("kindHint").textContent = k.hint;
   $("placeWrap").hidden = currentKind() !== "expiry";
   $("cycleWrap").hidden = currentKind() !== "cycle";
+  const monthly = currentKind() === "cycle" && $("f-rep").value === "monthly";
+  $("onWrap").hidden = $("offWrap").hidden = monthly;
+  if (monthly) { $("dateLabel").textContent = "처음 하는 날 (이 날짜의 ‘일’로 매달 반복)"; $("kindHint").textContent = "매달 같은 날에 돌아와요. 31일처럼 없는 달은 그 달 마지막 날로 해요."; }
   paintDoneBtn(editing && items.find((x) => x.id === editing));
 }
 // 완료 버튼: 한 번 끝나는 것(유통기한·일정·기타)에만
@@ -1251,6 +1273,7 @@ function openForm(it, date) {
   emojiTouched = typeof it?.emoji === "string";
   $("f-emoji").value = it ? emojiOf(it) : "";
   photoData = it?.photo || ""; paintPhoto();
+  $("f-rep").value = it?.repeat || "";
   $("f-on").value = it?.on ?? 21;
   $("f-off").value = it?.off ?? 7;
   $("delBtn").hidden = !it; $("delBtn").textContent = "지우기";
@@ -1278,7 +1301,8 @@ $("form").addEventListener("submit", async (e) => {
   if (!parse(date)) { $("f-date").focus(); toast("날짜를 골라주세요."); return; }
   const kind = currentKind();
   const body = { kind, title, date, place: kind === "expiry" ? $("f-place").value : "", memo: $("f-memo").value.trim(), fancy: $("f-fancy").checked, important: $("f-important").checked, emoji: $("f-emoji").value.trim(), updatedAt: new Date().toISOString() };
-  if (kind === "cycle") {
+  if (kind === "cycle" && $("f-rep").value === "monthly") body.repeat = "monthly";
+  else if (kind === "cycle") {
     const on = Math.round(Number($("f-on").value)), off = Math.round(Number($("f-off").value));
     if (!(on >= 1)) { $("f-on").focus(); toast("먹는 날 수를 1 이상으로 적어주세요."); return; }
     if (!(off >= 0)) { $("f-off").focus(); toast("쉬는 날 수를 0 이상으로 적어주세요."); return; }
@@ -1355,6 +1379,7 @@ $("emoChips").replaceChildren(...["🏃", "🎂", "💕", "🏥", "✈️", "�
   return b;
 }));
 document.querySelector(".bellmark").replaceWith(bellEl());
+$("f-rep").onchange = applyKind;
 $("cancelBtn").onclick = closeForm;
 $("veil").addEventListener("click", (e) => { if (e.target === $("veil")) closeForm(); });
 $("lockVeil").addEventListener("click", (e) => { if (e.target === $("lockVeil")) $("lockCancel").onclick(); });
