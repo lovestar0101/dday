@@ -40,7 +40,9 @@
   --c-birthday: #e5527f;
   --c-anniv: #9461cf;
   --c-expiry: #dd6f10;
-  --c-plan: #3f7cd8;
+  --c-plan: #2f9a57;   /* 같이 일정 = 노랑 + 파랑 = 초록 */
+  --c-jm: #3f7cd8;     /* 재민 = 파랑 */
+  --c-eb: #c18f00;     /* 은별 = 노랑 */
   --c-etc: #94806f;
   --c-cycle: #19897a;
   --spot-a: #fff0b8;
@@ -53,7 +55,7 @@
     --paper: #25201b; --sheet: #312a23; --ink: #fbefdf; --muted: #c0aa92; --line: #483e33;
     --accent: #ffc584; --accent-ink: #3a2410; --accent-text: #ffc584; --sat: #9dbcff; --warn: #ffbe6e; --chip: #3c3329;
     --blush: #e6a197; --paw: rgba(255, 197, 132, .06); --shadow: rgba(0, 0, 0, .35);
-    --c-birthday: #ff9cbc; --c-anniv: #c3a6ff; --c-expiry: #ffbb70; --c-plan: #9dbcff; --c-etc: #c0aa92; --c-cycle: #6fd8c6;
+    --c-birthday: #ff9cbc; --c-anniv: #c3a6ff; --c-expiry: #ffbb70; --c-plan: #7fd6a0; --c-jm: #9dbcff; --c-eb: #ffd95e; --c-etc: #c0aa92; --c-cycle: #6fd8c6;
     --spot-a: #f7e09a; --spot-b: #f6c590; --spot-c: #f2ae88; --spot-ink: #4a2c12;
     color-scheme: dark;
   }
@@ -62,7 +64,7 @@
     --paper: #25201b; --sheet: #312a23; --ink: #fbefdf; --muted: #c0aa92; --line: #483e33;
     --accent: #ffc584; --accent-ink: #3a2410; --accent-text: #ffc584; --sat: #9dbcff; --warn: #ffbe6e; --chip: #3c3329;
     --blush: #e6a197; --paw: rgba(255, 197, 132, .06); --shadow: rgba(0, 0, 0, .35);
-    --c-birthday: #ff9cbc; --c-anniv: #c3a6ff; --c-expiry: #ffbb70; --c-plan: #9dbcff; --c-etc: #c0aa92; --c-cycle: #6fd8c6;
+    --c-birthday: #ff9cbc; --c-anniv: #c3a6ff; --c-expiry: #ffbb70; --c-plan: #7fd6a0; --c-jm: #9dbcff; --c-eb: #ffd95e; --c-etc: #c0aa92; --c-cycle: #6fd8c6;
     --spot-a: #f7e09a; --spot-b: #f6c590; --spot-c: #f2ae88; --spot-ink: #4a2c12;
     color-scheme: dark;
 }
@@ -279,6 +281,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .pill { font-size: 12px; padding: 2px 10px; border-radius: 999px; white-space: nowrap; background: color-mix(in srgb, currentColor 13%, transparent); }
 .k-birthday { color: var(--c-birthday); } .k-anniv { color: var(--c-anniv); } .k-expiry { color: var(--c-expiry); }
 .k-plan { color: var(--c-plan); } .k-etc { color: var(--c-etc); } .k-cycle { color: var(--c-cycle); }
+.k-jm { color: var(--c-jm); } .k-eb { color: var(--c-eb); }
+/* 냥달력 일정 칸: 은별 노랑, 재민 파랑, 같이 초록으로 꽉 칠하기 */
+.day .tag.k-eb { background: #ffe066; color: #5a4300; }
+.day .tag.k-jm { background: #a9c8ff; color: #10336e; }
+.day .tag.k-plan { background: #b3e2c1; color: #14502b; }
+/* 여러 날 일정은 옆 칸과 이어지게 */
+.day .tag.sp-l { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -3px; }
+.day .tag.sp-r { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: -3px; }
 .row.expired .info .t { text-decoration: line-through; text-decoration-color: var(--accent); text-decoration-thickness: 2px; }
 .empty { padding: 28px 20px 32px; text-align: center; color: var(--muted); display: grid; justify-items: center; gap: 4px; }
 .empty .emptycat { width: 120px; height: auto; margin-bottom: 4px; }
@@ -600,6 +610,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
       <label class="check"><input type="checkbox" id="f-lunar"><span>🌙 음력 생일<small>날짜를 음력으로 골라요</small></span></label>
       <label class="check" id="leapWrap"><input type="checkbox" id="f-leap"><span>윤달<small>윤달에 태어났으면</small></span></label>
     </div>
+    <div class="two" id="planWrap">
+      <label class="field"><span>누구 일정?</span>
+        <select id="f-who"><option value="">👫 같이</option><option value="재민">🐷 재민</option><option value="은별">🐱 은별</option></select></label>
+      <label class="field"><span>끝나는 날 (여러 날이면)</span><input id="f-end" type="date"></label>
+    </div>
     <label class="field" id="placeWrap"><span>보관 위치</span>
       <select id="f-place"><option value="">선택 안 함</option><option>냉장</option><option>냉동</option><option>실온</option><option>약통</option><option>기타</option></select>
     </label>
@@ -663,6 +678,12 @@ function iconEl(kindOrSvg, extra = "") {
   return e;
 }
 const bellEl = () => iconEl(SVG_BELL, "bell");
+// 일정은 누구 것인지(who)에 따라 표시가 달라진다: 없으면 같이 일정
+const WHO = { 재민: { icon: "🐷", k: "jm" }, 은별: { icon: "🐱", k: "eb" } };
+const personal = (it) => it.kind === "plan" && WHO[it.who];
+const kcls = (it) => "k-" + (personal(it) ? WHO[it.who].k : it.kind);
+const kicon = (it) => (personal(it) ? WHO[it.who].icon : it.kind);
+const klabel = (it) => (it.kind === "plan" ? (personal(it) ? `${it.who} 일정` : "같이 일정") : KINDS[it.kind]?.label || "기타");
 
 // 항목마다 붙는 귀여운 이모지: 저장된 게 있으면 그것, 없으면 이름의 단어로 짐작 (AI 아님, 단어 짝 맞추기)
 const EMOJI_WORDS = [
@@ -694,7 +715,9 @@ let group = null;        // 디데이 화면에서 고른 종류 (null 이면 �
 const GROUPS = {
   dday:   { label: "기념일",   icon: "anniv", hint: "생일·기념일·특별한 날", kind: "birthday", match: (it) => it.kind === "birthday" || it.kind === "anniv" || it.fancy, k: "--c-birthday" },
   expiry: { label: "유통기한", icon: "expiry", hint: "냉장고 속 먹거리", kind: "expiry", match: (it) => it.kind === "expiry", k: "--c-expiry" },
-  plan:   { label: "일정",     icon: "plan", hint: "약속·할 일", kind: "plan", match: (it) => it.kind === "plan", k: "--c-plan" },
+  plan:   { label: "같이 일정", icon: "plan", hint: "우리 둘 약속·할 일", kind: "plan", match: (it) => it.kind === "plan" && !personal(it), k: "--c-plan" },
+  jm:     { label: "재민 일정", icon: "🐷", hint: "재민 개인 일정", kind: "plan", who: "재민", match: (it) => personal(it) && it.who === "재민", k: "--c-jm" },
+  eb:     { label: "은별 일정", icon: "🐱", hint: "은별 개인 일정", kind: "plan", who: "은별", match: (it) => personal(it) && it.who === "은별", k: "--c-eb" },
   cycle:  { label: "약",       icon: "cycle", hint: "먹는 날·쉬는 날", kind: "cycle", match: (it) => it.kind === "cycle", k: "--c-cycle" },
   etc:    { label: "기타",     icon: "etc", hint: "그 밖의 날", kind: "etc", match: (it) => it.kind === "etc", k: "--c-etc" },
 };
@@ -849,6 +872,9 @@ function nextBday(it, base, t) {   // 오늘 이후 가장 가까운 생일 {nex
   for (let y = t.getFullYear() - 1; ; y++) { const next = bdayOn(it, base, y); if (next >= t) return { next, y }; }
 }
 
+// 여러 날 일정의 끝나는 날 (시작보다 뒤일 때만)
+function planEnd(it) { const e = parse(it.end), b = parse(it.date); return e && b && e > b ? e : null; }
+
 function onMonth(base, y, m) { return new Date(y, m, Math.min(base.getDate(), new Date(y, m + 1, 0).getDate())); }
 function nextMonthly(base, t) {
   if (t <= base) return base;
@@ -916,8 +942,14 @@ function compute(it, t) {
     return { key: n, big: ddLabel(n), small: n === 0 ? "오늘까지" : n === 1 ? "내일까지" : `${n}일 남음`,
       sub: `${place}${fmt(base)}까지`, state: n <= 1 ? "today" : n <= 3 ? "soon" : "" };
   }
+  const pe = it.kind === "plan" && planEnd(it);
+  if (pe && n <= 0 && t <= pe) {   // 여러 날 일정의 한가운데
+    const k = diff(base, t) + 1, len = diff(base, pe) + 1;
+    return { key: 0, big: "D-Day", small: `진행 중 ${k}/${len}일째`, sub: `${fmt(base)} ~ ${fmt(pe)}`, state: "today", party: "오늘이에요! 🎉" };
+  }
+  if (pe && t > pe) { const m = diff(t, pe); return { key: m, big: ddLabel(m), small: `${-m}일 지남`, sub: `${fmt(base)} ~ ${fmt(pe)}`, state: "past" }; }
   return { key: n, big: ddLabel(n), small: n < 0 ? `${-n}일 지남` : n === 0 ? "오늘" : `${n}일 남음`,
-    sub: fmt(base), state: n === 0 ? "today" : n < 0 ? "past" : n <= 3 ? "soon" : "", target: n > 0 ? base : null,
+    sub: pe ? `${fmt(base)} ~ ${fmt(pe)}` : fmt(base), state: n === 0 ? "today" : n < 0 ? "past" : n <= 3 ? "soon" : "", target: n > 0 ? base : null,
     party: "오늘이에요! 🎉" };
 }
 
@@ -1039,7 +1071,7 @@ function makeRow({ it, c }) {
   if (it.photo) ti.prepend(thumb(it.photo));
   const su = document.createElement("div"); su.className = "s"; su.textContent = c.sub + (it.memo ? ` · ${it.memo}` : "");
   info.append(ti, su);
-  const pill = document.createElement("span"); pill.className = "pill k-" + it.kind; pill.append(iconEl(it.kind), KINDS[it.kind]?.label || "기타");
+  const pill = document.createElement("span"); pill.className = "pill " + kcls(it); pill.append(iconEl(kicon(it)), klabel(it));
   row.append(dd, info, pill);
   clickable(row, it);
   row.setAttribute("aria-label", `${it.title}, ${w.getMonth() + 1}월 ${w.getDate()}일, ${c.big}, ${c.small}. 눌러서 고치기`);
@@ -1147,7 +1179,7 @@ function renderCats(rows, n) {
 // ---------------------------------------------------------------------
 function eventsBetween(start, end) {     // start~end(포함) 사이 날짜별 [{it, label}]
   const out = {};
-  const put = (d, it, label) => { if (d < start || d > end) return; (out[ymd(d)] ||= []).push({ it, label: it.done ? `✓ 완료 · ${label}` : label, short: it.kind === "anniv" ? label.replace(" (1일)", "") : it.title }); };
+  const put = (d, it, label, span) => { if (d < start || d > end) return; (out[ymd(d)] ||= []).push({ it, label: it.done ? `✓ 완료 · ${label}` : label, short: it.kind === "anniv" ? label.replace(" (1일)", "") : it.title, span }); };
   const plusDays = (b, n) => new Date(b.getFullYear(), b.getMonth(), b.getDate() + n);
   for (const it of items) {       // 완료한 것도 그날 칸에 흐리게 남겨서, 나중에 찾아볼 수 있게
     const base = parse(it.date);
@@ -1177,7 +1209,11 @@ function eventsBetween(start, end) {     // start~end(포함) 사이 날짜별 [
         if (off && pos === on - 1) put(d, it, `마지막 먹는 날 (${fmt(plusDays(d, 1)).slice(5)}부터 ${off}일 쉬기)`);
       }
     } else if (it.kind === "expiry") put(base, it, `유통기한 끝${it.place ? ` · ${it.place}` : ""}`);
-    else put(base, it, KINDS[it.kind]?.label || "기타");
+    else if (it.kind === "plan" && planEnd(it)) {   // 여러 날 일정: 날마다 칸에 이어서
+      const n = diff(base, planEnd(it)) + 1, range = `${base.getMonth() + 1}.${base.getDate()} ~ ${planEnd(it).getMonth() + 1}.${planEnd(it).getDate()}`;
+      for (let i = 0; i < n; i++) put(plusDays(base, i), it, `${klabel(it)} · ${i + 1}/${n}일째 (${range})`, { i, n });
+    }
+    else put(base, it, klabel(it));
   }
   return out;
 }
@@ -1203,13 +1239,18 @@ function renderCal() {
     const n = document.createElement("span"); n.className = "n"; n.textContent = d.getDate();
     const top = list.slice().sort((a, b) => (b.it.important ? 1 : 0) - (a.it.important ? 1 : 0))[0];
     const head = document.createElement("span"); head.className = "dhead"; head.append(n);
-    if (top) head.append(top.it.important ? iconEl(SVG_BELL, "mark") : iconEl(top.it.kind, "mark" + (top.it.done ? " done" : "")));
+    if (top) head.append(top.it.important ? iconEl(SVG_BELL, "mark") : iconEl(kicon(top.it), "mark" + (top.it.done ? " done" : "")));
     const tags = document.createElement("span"); tags.className = "tags";
-    // 중요한 것과 기념일 숫자를 먼저 보이게
-    list.sort((a, b) => (b.it.important ? 1 : 0) - (a.it.important ? 1 : 0));
-    for (const { it, short } of list.slice(0, 2)) {
-      const g = document.createElement("span"); g.className = "tag k-" + it.kind + (it.done ? " done" : "");
-      g.append(short); tags.append(g);
+    // 여러 날 일정을 맨 위(옆 칸과 같은 줄)에, 그다음 중요한 것
+    list.sort((a, b) => (b.span ? 1 : 0) - (a.span ? 1 : 0) || String(a.it.date).localeCompare(String(b.it.date)) || (b.it.important ? 1 : 0) - (a.it.important ? 1 : 0));
+    for (const { it, short, span } of list.slice(0, 2)) {
+      const g = document.createElement("span"); g.className = "tag " + kcls(it) + (it.done ? " done" : "");
+      if (span) {   // 이어지는 막대: 첫날과 일요일에만 이름
+        if (span.i > 0 && d.getDay() !== 0) g.classList.add("sp-l");
+        if (span.i < span.n - 1 && d.getDay() !== 6) g.classList.add("sp-r");
+        g.append(span.i === 0 || d.getDay() === 0 ? short : " ");
+      } else g.append(short);
+      tags.append(g);
     }
     if (list.length > 2) { const more = document.createElement("span"); more.className = "more"; more.textContent = `+${list.length - 2}`; tags.append(more); }
     b.append(head, tags);
@@ -1237,7 +1278,7 @@ function renderCal() {
   const rel = diff(t, sd);
   box.replaceChildren(...mine.map(({ it, label }) => {
     const r = document.createElement("div"); r.className = "crow" + (it.done ? " done-row" : "");
-    const pill = document.createElement("span"); pill.className = "pill k-" + it.kind; pill.append(iconEl(it.kind), KINDS[it.kind]?.label || "기타");
+    const pill = document.createElement("span"); pill.className = "pill " + kcls(it); pill.append(iconEl(kicon(it)), klabel(it));
     const ti = document.createElement("div"); ti.className = "t"; ti.textContent = titleText(it);
     if (it.important) ti.append(bellEl());
     if (it.photo) ti.prepend(thumb(it.photo));
@@ -1690,6 +1731,8 @@ function applyKind() {
   const k = KINDS[currentKind()];
   $("titleLabel").textContent = k.title; $("dateLabel").textContent = k.date; $("kindHint").textContent = k.hint;
   $("placeWrap").hidden = currentKind() !== "expiry";
+  $("planWrap").hidden = currentKind() !== "plan";
+  if (currentKind() === "plan") $("kindHint").textContent = "그날까지 남은 날을 세요. 시간은 메모에 적어 주세요. 끝나는 날을 넣으면 냥달력에 이어서 칠해져요.";
   $("lunarWrap").hidden = currentKind() !== "birthday";
   $("leapWrap").hidden = !$("f-lunar").checked;
   if (currentKind() === "birthday" && $("f-lunar").checked) { $("dateLabel").textContent = "태어난 날 (음력)"; $("kindHint").textContent = "음력 날짜로 골라요. 해마다 양력으로 바꿔서 다음 생일을 보여줘요."; }
@@ -1723,6 +1766,7 @@ function openForm(it, date) {
   $("f-on").value = it?.on ?? 21;
   $("f-off").value = it?.off ?? 7;
   $("f-lunar").checked = !!it?.lunar; $("f-leap").checked = !!it?.leap;
+  $("f-who").value = it ? (WHO[it.who] ? it.who : "") : GROUPS[group]?.who || ""; $("f-end").value = it?.end || "";
   $("delBtn").hidden = !it; $("delBtn").textContent = "지우기";
   applyKind();
   paintDoneBtn(it);
@@ -1748,6 +1792,12 @@ $("form").addEventListener("submit", async (e) => {
   if (!parse(date)) { $("f-date").focus(); toast("날짜를 골라주세요."); return; }
   const kind = currentKind();
   const body = { kind, title, date, place: kind === "expiry" ? $("f-place").value : "", memo: $("f-memo").value.trim(), fancy: $("f-fancy").checked, important: $("f-important").checked, emoji: $("f-emoji").value.trim(), updatedAt: new Date().toISOString() };
+  if (kind === "plan") {
+    if ($("f-who").value) body.who = $("f-who").value;
+    const end = $("f-end").value;
+    if (end && parse(end) && end < date) { $("f-end").focus(); toast("끝나는 날은 시작하는 날보다 뒤로 골라주세요."); return; }
+    if (end > date) body.end = end;
+  }
   if (kind === "birthday" && $("f-lunar").checked) { body.lunar = true; if ($("f-leap").checked) body.leap = true; }
   if (kind === "cycle" && $("f-rep").value === "monthly") body.repeat = "monthly";
   else if (kind === "cycle") {
