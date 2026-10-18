@@ -581,7 +581,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   <div class="panel">
     <h2>🔔 새 소식</h2>
     <ul class="news" id="newsList"></ul>
-    <div class="actions"><div class="right"><button type="button" class="btn primary" id="newsOk">다 봤어요</button></div></div>
+    <div class="actions"><div class="right"><button type="button" class="btn" id="newsClear">이제 지워줘요</button><button type="button" class="btn primary" id="newsOk">다 봤어요</button></div></div>
   </div>
 </div>
 
@@ -1576,11 +1576,13 @@ $("wDel").onclick = async () => {
 };
 
 // ---------------------------------------------------------------------
-// 🔔 새 소식: 마지막으로 본 뒤 다른 기기(또는 Claude)가 새로 넣거나 바꾼 것
+// 🔔 새 소식: 다른 기기(또는 Claude)가 새로 넣거나 바꾼 것
+//   '다 봤어요' = 숫자만 없애고 목록은 남김(dday-seen), '이제 지워줘요' = 목록도 비움(dday-cleared)
 // ---------------------------------------------------------------------
-function newsList() {
-  let seen = lsGet("dday-seen");
-  if (!seen) { seen = new Date().toISOString(); lsSet("dday-seen", seen); }
+function newsList(key = "dday-cleared") {
+  if (!lsGet("dday-seen")) lsSet("dday-seen", new Date().toISOString());
+  if (!lsGet("dday-cleared")) lsSet("dday-cleared", new Date(Date.now() - 3 * DAY).toISOString());   // 처음엔 최근 3일 것부터 남겨 두기
+  const seen = lsGet(key) || "";
   const out = [];
   const fresh = (x, ...stamps) => x.dev !== DEV && stamps.some((s) => s && String(s) > seen);
   for (const it of items) if (fresh(it, it.updatedAt)) {
@@ -1595,17 +1597,21 @@ function paintBell() {
   const on = !viewLocked() && ready;
   $("bellBtn").hidden = !on;
   if (!on) return;
-  const n = newsList().length;
+  const n = newsList("dday-seen").length;
   $("bellN").hidden = !n; $("bellN").textContent = n > 99 ? "99+" : n;
 }
 $("bellBtn").onclick = () => {
-  const list = newsList();
-  $("newsList").replaceChildren(...(list.length ? list.map(([, where, what]) => {
-    const li = document.createElement("li"), s = document.createElement("small"); s.textContent = where; li.append(s, what); return li;
+  const list = newsList(), seen = lsGet("dday-seen") || "";
+  $("newsList").replaceChildren(...(list.length ? list.map(([at, where, what]) => {
+    const li = document.createElement("li"), s = document.createElement("small"); s.textContent = where; li.append(s, what);
+    if (String(at) > seen) { const n = document.createElement("b"); n.textContent = " NEW"; n.style.color = "var(--accent-text)"; li.append(n); }
+    return li;
   }) : [Object.assign(document.createElement("li"), { textContent: "새로 바뀐 게 없다냥 🐱" })]));
+  $("newsClear").hidden = !list.length;
   $("newsVeil").hidden = false;
 };
 $("newsOk").onclick = () => { lsSet("dday-seen", new Date().toISOString()); $("newsVeil").hidden = true; paintBell(); };
+$("newsClear").onclick = () => { const t = new Date().toISOString(); lsSet("dday-seen", t); lsSet("dday-cleared", t); $("newsVeil").hidden = true; paintBell(); toast("새 소식을 지웠다냥"); };
 
 // ---------------------------------------------------------------------
 // 가족 비밀번호
