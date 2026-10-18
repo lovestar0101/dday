@@ -1250,7 +1250,7 @@ function lockedOut() {      // 서버가 비밀번호를 거절함 (비밀번호
 }
 function startListening() {
   store.listen(pw,
-    (list) => { items = list; ready = true; render(); },
+    (list) => { items = list.sort((a, b) => String(a.title).localeCompare(String(b.title), "ko")); ready = true; render(); },   // 날짜가 같으면 가나다 순
     (list) => { trash = list; render(); },
     () => lockedOut(),
     (list) => { cart = list; renderCart(); });
