@@ -359,9 +359,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 /* 냥수첩은 앱처럼: 머리 그림을 숨기고 화면 한 장에 맞춘 뒤, 목록만 안에서 스크롤 */
 body.app { overflow: hidden; }
 body.app .head, body.app .demo { display: none; }
-#view-wish, body.app #view-cart { position: fixed; left: 0; right: 0; margin: 0 auto; max-width: 680px; box-sizing: border-box; padding: 0 16px; top: calc(64px + env(safe-area-inset-top, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); grid-template-rows: auto auto auto 1fr auto; gap: 10px; }
+#view-wish, body.app #view-cart { position: fixed; left: 0; right: 0; margin: 0 auto; max-width: 680px; box-sizing: border-box; padding: 0 16px; top: calc(64px + env(safe-area-inset-top, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); grid-template-rows: auto auto auto 1fr auto; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 body.app #view-cart { grid-template-rows: auto 1fr; }
-.wscroll { display: grid; gap: 12px; align-content: start; overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
+.wscroll { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-content: start; overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
 
 .wtabs { display: flex; gap: 6px; }
 .wtabs button { flex: 1; min-width: 0; white-space: nowrap; font: inherit; font-size: 14px; border: 2px solid var(--line); background: var(--sheet); color: var(--muted); border-radius: 999px; padding: 7px 4px; cursor: pointer; }
