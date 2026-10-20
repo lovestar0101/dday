@@ -352,6 +352,34 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .err { color: var(--accent-text); font-size: 13px; margin: 0; min-height: 1.2em; }
 .toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--sheet); padding: 9px 18px; border-radius: 999px; font-size: 14px; z-index: 20; max-width: calc(100% - 32px); }
 
+
+/* 냥수첩 */
+#view-wish { display: grid; gap: 12px; }
+#view-wish[hidden] { display: none; }
+.wtabs { display: flex; gap: 6px; }
+.wtabs button { flex: 1; font: inherit; font-size: 14px; border: 2px solid var(--line); background: var(--sheet); color: var(--muted); border-radius: 999px; padding: 7px 4px; cursor: pointer; }
+.wtabs button[aria-selected="true"] { border-color: var(--accent); color: var(--accent-text); font-family: var(--f-display); }
+.wishme { display: flex; gap: 6px; align-items: center; justify-content: flex-end; font-size: 13px; color: var(--muted); }
+.wishme button { font: inherit; font-size: 13px; border: 1.5px solid var(--line); background: var(--sheet); color: var(--muted); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.wishme button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-text); }
+.wrow { display: flex; align-items: center; gap: 10px; padding: 12px 10px 12px 16px; border-top: 1.5px solid var(--line); }
+.wrow:first-child { border-top: 0; }
+.wrow input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; margin: 0; cursor: pointer; }
+.wrow .t { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.wrow .t small { display: block; color: var(--muted); font-size: 12px; }
+.wrow.done .t > span:first-child { text-decoration: line-through; color: var(--muted); }
+.who { font-size: 11px; border-radius: 999px; padding: 1px 7px; margin-left: 6px; color: #fff; vertical-align: 1px; }
+.who.jm { background: #5b8def; } .who.eb { background: #ef6fa0; }
+.wrow .x { font: inherit; border: 0; background: none; color: var(--muted); width: 32px; height: 32px; border-radius: 999px; cursor: pointer; flex: none; }
+.spinbtn { width: 100%; font-size: 19px; padding: 12px; }
+.wheelbox { position: relative; width: min(280px, 72vw); aspect-ratio: 1; margin: 14px auto 0; }
+.wheel { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--ink); transition: transform 3s cubic-bezier(.15,.85,.25,1); position: relative; overflow: hidden; }
+.wheel span { position: absolute; left: 50%; top: 50%; width: 46%; transform-origin: 0 50%; font-size: 12px; text-align: right; padding-right: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #222; margin-top: -.6em; box-sizing: border-box; }
+.wheelbox::after { content: "▼"; position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 24px; color: var(--accent); }
+.wpick { text-align: center; font-family: var(--f-display); font-size: 24px; min-height: 1.4em; margin: 0; }
+.wpick.pop { animation: wpop .5s; }
+@keyframes wpop { 0% { transform: scale(.6); } 70% { transform: scale(1.15); } }
+
 /* 냥지갑 */
 .wsum { display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; }
 .wbox { background: linear-gradient(140deg, var(--spot-a), var(--spot-b)); color: var(--spot-ink); border-radius: 20px; padding: 12px 14px; display: grid; gap: 2px; box-shadow: 0 8px 18px -12px var(--shadow); }
@@ -545,9 +573,45 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     <button type="button" role="tab" data-tab="list"><span class="ico" aria-hidden="true">🐱</span>냥서랍<span class="badge" id="badge" hidden></span></button>
     <button type="button" role="tab" data-tab="cart"><span class="ico" aria-hidden="true">🧺</span>냥바구니</button>
     <button type="button" role="tab" data-tab="wallet"><span class="ico" aria-hidden="true">💰</span>냥지갑</button>
+    <button type="button" role="tab" data-tab="wish"><span class="ico" aria-hidden="true">🎡</span>냥수첩</button>
     <button type="button" role="tab" data-tab="set"><span class="ico" aria-hidden="true">⚙️</span>설정</button>
   </div>
 </nav>
+
+<main class="view" id="view-wish" hidden>
+  <div class="wtabs" role="tablist" id="wishTabs">
+    <button type="button" data-c="go">🗺 가고 싶은 곳</button>
+    <button type="button" data-c="do">🎯 하고 싶은 것</button>
+    <button type="button" data-c="eat">🍜 먹고 싶은 것</button>
+  </div>
+  <div class="wishme" id="wishMe">나는 <button type="button" data-w="재민">🐷 재민</button><button type="button" data-w="은별">🐱 은별</button></div>
+  <form class="search" id="wishForm">
+    <span aria-hidden="true">📝</span>
+    <input id="wishInput" placeholder="예: 제주도 한달살기" maxlength="60" autocomplete="off" enterkeyhint="done" aria-label="적을 것">
+    <button type="submit" class="add">+ 적기</button>
+  </form>
+  <section class="list" id="wishList" aria-live="polite"></section>
+  <button type="button" class="add spinbtn" id="spinBtn">🎡 룰렛 돌리기</button>
+  <details class="trash" id="wishDone" hidden><summary id="wishDoneSum"></summary><div class="list" id="wishDoneList"></div></details>
+  <details class="trash" id="spinLog" hidden><summary>🎡 룰렛 기록</summary><div class="list" id="spinList"></div></details>
+  <p class="note">룰렛에 뽑히면 거절 없이 무조건! 다시 돌리기는 둘이 합쳐 한 달에 한 번이에요.</p>
+</main>
+
+<!-- 냥수첩 룰렛 창 -->
+<div class="veil" id="spinVeil" hidden>
+  <div class="panel">
+    <h2>🎡 냥수첩 룰렛</h2>
+    <div class="wheelbox"><div class="wheel" id="wheel"></div></div>
+    <p class="wpick" id="wpick" aria-live="polite"></p>
+    <div class="actions">
+      <button type="button" class="btn" id="spinRe" hidden></button>
+      <div class="right">
+        <button type="button" class="btn" id="spinClose">닫기</button>
+        <button type="button" class="btn primary" id="spinOk" hidden>수락! 🐾</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- 비밀번호 창 -->
 <div class="veil" id="lockVeil" hidden>
@@ -714,6 +778,7 @@ const SLEEPY_CAT = `<img class="emptycat" src="cat-loaf.webp" alt="">`;
 let items = [];          // {id, kind, title, date, place, memo, fancy, on, off, done, doneAt}
 let trash = [];          // {id, ...data, deletedAt}
 let cart = [];           // 냥바구니 {id, title, done, createdAt, doneAt}
+let wish = [], spins = [];   // 냥수첩 {id, cat, title, who, createdAt, done, doneAt, review}, 룰렛 기록 {id, cat, wishId, title, who, at, reroll}
 let wallet = [], wauto = [], wReady = {};   // 냥지갑 기록, 매달 자동 기록
 let showAllPast = false;
 let group = null;        // 디데이 화면에서 고른 종류 (null 이면 종류 고르는 타일)
@@ -1312,7 +1377,7 @@ $("dayAdd").onclick = () => edit(null, selDay);
 // 아래 버튼 줄
 // ---------------------------------------------------------------------
 function setTab(name) {
-  const TABS = ["list", "cal", "cart", "wallet", "set"];
+  const TABS = ["list", "cal", "cart", "wallet", "wish", "set"];
   if (!TABS.includes(name)) name = "cal";
   for (const b of document.querySelectorAll(".tabbar [data-tab]")) b.setAttribute("aria-selected", String(b.dataset.tab === name));
   for (const v of TABS) $("view-" + v).hidden = v !== name;
@@ -1368,6 +1433,95 @@ $("cartClear").onclick = () => {
   const got = cart.filter((c) => c.done);
   if (!got.length || !confirm(`산 것 ${got.length}개를 지울까요?`)) return;
   needUnlock(() => cartSave(Object.fromEntries(got.map((c) => ["cart/" + c.id, null]))));
+};
+
+// ---------------------------------------------------------------------
+// 냥수첩: 가고·하고·먹고 싶은 것 적고, 룰렛으로 뽑으면 거절 없이 무조건 (서버 규칙을 안 바꾸려고 v/<열쇠>/cart 에 kind: wish|spin 으로 같이 둔다)
+// ---------------------------------------------------------------------
+const WCAT = { go: 1, do: 1, eat: 1 };
+let wCat = WCAT[lsGet("dday-wcat")] ? lsGet("dday-wcat") : "go";
+let me = lsGet("dday-me") || "";
+const whoTag = (w) => w ? `<span class="who ${w === "재민" ? "jm" : "eb"}">${w}</span>` : "";
+const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+function wishRow(w) {
+  const l = document.createElement("div"); l.className = "wrow" + (w.done ? " done" : "");
+  const box = document.createElement("input"); box.type = "checkbox"; box.checked = !!w.done; box.setAttribute("aria-label", w.title + " 했어요");
+  box.onchange = () => needUnlock(() => {
+    const { id, ...d } = w;
+    if (!box.checked) return wSave({ ["cart/" + id]: { ...d, done: false, doneAt: "", review: "" } });
+    const review = (prompt("한 줄 후기 (안 적어도 돼요)", "") || "").trim().slice(0, 80);
+    wSave({ ["cart/" + id]: { ...d, done: true, doneAt: ymd(today()), review } });
+  });
+  const t = document.createElement("div"); t.className = "t";
+  t.innerHTML = `<span>${esc(w.title)}</span>${whoTag(w.who)}` + (w.done ? `<small>${esc(w.doneAt)}${w.review ? " · " + esc(w.review) : ""}</small>` : "");
+  const ed = document.createElement("button"); ed.type = "button"; ed.className = "x"; ed.textContent = "✏️"; ed.setAttribute("aria-label", w.title + " 고치기");
+  ed.onclick = () => needUnlock(() => {
+    const v = prompt("고치기 (비우면 지워요)", w.title); if (v == null) return;
+    const title = v.trim().slice(0, 60), { id, ...d } = w;
+    if (!title) { if (confirm(`'${w.title}' 지울까요?`)) wSave({ ["cart/" + id]: null }); return; }
+    wSave({ ["cart/" + id]: { ...d, title } });
+  });
+  l.append(box, t, ed); return l;
+}
+function renderWish() {
+  for (const b of $("wishTabs").children) b.setAttribute("aria-selected", String(b.dataset.c === wCat));
+  for (const b of $("wishMe").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.w === me));
+  if (viewLocked()) { $("wishList").replaceChildren(lockedEmpty()); $("wishDone").hidden = $("spinLog").hidden = true; return; }
+  const mine = wish.filter((w) => w.cat === wCat).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  const todo = mine.filter((w) => !w.done), done = mine.filter((w) => w.done);
+  if (todo.length) $("wishList").replaceChildren(...todo.map(wishRow));
+  else { const e = document.createElement("div"); e.className = "empty"; e.innerHTML = SLEEPY_CAT + "<strong>아직 아무것도 없다냥</strong>위에 적어 주세요"; $("wishList").replaceChildren(e); }
+  $("wishDone").hidden = !done.length; $("wishDoneSum").textContent = `다 한 것 (${done.length})`;
+  $("wishDoneList").replaceChildren(...done.map(wishRow));
+  const log = spins.filter((x) => x.cat === wCat).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 30);
+  $("spinLog").hidden = !log.length;
+  $("spinList").replaceChildren(...log.map((x) => {
+    const d = document.createElement("div"); d.className = "wrow"; const w = wish.find((v) => v.id === x.wishId);
+    d.innerHTML = `<div class="t"><span>${w?.done ? "✅" : "⏳"} ${esc(x.title)}</span><small>${esc(String(x.at).slice(0, 10))} · ${esc(x.who || "")} 돌림${x.reroll ? " · 다시 돌리기" : ""}</small></div>`; return d;
+  }));
+}
+for (const b of $("wishTabs").children) b.onclick = () => { wCat = b.dataset.c; lsSet("dday-wcat", wCat); renderWish(); };
+for (const b of $("wishMe").querySelectorAll("button")) b.onclick = () => { me = b.dataset.w; lsSet("dday-me", me); renderWish(); };
+$("wishForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const title = $("wishInput").value.trim().slice(0, 60);
+  if (!title) return;
+  if (!me) { toast("먼저 '나는' 재민·은별을 골라 주세요"); return; }
+  needUnlock(async () => {
+    if (await wSave({ ["cart/" + store.newId()]: { kind: "wish", cat: wCat, title, who: me, createdAt: new Date().toISOString(), done: false } })) { $("wishInput").value = ""; $("wishInput").focus(); }
+  });
+});
+// 룰렛: 지금 칸의 안 한 것만, 다시 돌리기는 둘이 합쳐 한 달 1번 (매달 1일에 다시 생김)
+const WCOL = ["#ffd6e0", "#ffe9a8", "#c9f0d6", "#cfe3ff", "#e8d6ff", "#ffd9b8"];
+let deg = 0, picked = null, isReroll = false, spinning = false;
+const rerollsLeft = () => 1 - spins.filter((x) => x.reroll && String(x.at).slice(0, 7) === ymd(today()).slice(0, 7)).length;
+function spin() {
+  const pool = wish.filter((w) => w.cat === wCat && !w.done);
+  if (pool.length < 2) { toast("2개 이상 적어야 돌릴 수 있다냥"); return; }
+  if (spinning) return; spinning = true;
+  const n = pool.length, seg = 360 / n, i = Math.floor(Math.random() * n), wheel = $("wheel");
+  wheel.style.background = `conic-gradient(${pool.map((_, k) => `${WCOL[k % WCOL.length]} ${k * seg}deg ${(k + 1) * seg}deg`).join(",")})`;
+  wheel.replaceChildren(...pool.map((w, k) => { const s = document.createElement("span"); s.textContent = w.title; s.style.transform = `rotate(${k * seg + seg / 2 - 90}deg)`; return s; }));
+  deg += 1800 + ((360 - (i * seg + seg / 2) - (deg % 360)) % 360 + 360) % 360;   // 위쪽 ▼ 가 i번째 칸 가운데에 서게, 5바퀴 더
+  wheel.style.transform = `rotate(${deg}deg)`;
+  picked = null; $("wpick").textContent = "두근두근…"; $("wpick").classList.remove("pop");
+  $("spinOk").hidden = $("spinRe").hidden = true; $("spinVeil").hidden = false;
+  setTimeout(() => {
+    spinning = false; picked = pool[i];
+    $("wpick").textContent = "🐾 " + picked.title + " 🐾"; $("wpick").classList.add("pop");
+    const left = Math.max(0, rerollsLeft());
+    $("spinOk").hidden = $("spinRe").hidden = false; $("spinRe").disabled = !left;
+    $("spinRe").textContent = `다시 돌리기 (이번 달 ${left}번)`;
+  }, 3100);
+}
+$("spinBtn").onclick = () => needUnlock(() => { if (!me) { toast("먼저 '나는' 재민·은별을 골라 주세요"); return; } isReroll = false; spin(); });
+$("spinRe").onclick = () => { if (rerollsLeft() > 0) { isReroll = true; spin(); } };
+$("spinClose").onclick = () => { if (!spinning) $("spinVeil").hidden = true; };
+$("spinOk").onclick = async () => {
+  if (!picked) return;
+  const rec = { kind: "spin", cat: wCat, wishId: picked.id, title: picked.title, who: me, at: new Date().toISOString() };
+  if (isReroll) rec.reroll = true;
+  if (await wSave({ ["cart/" + store.newId()]: rec })) { $("spinVeil").hidden = true; toast("약속했다냥! 거절 없음 🐾"); }
 };
 
 // ---------------------------------------------------------------------
@@ -1711,11 +1865,11 @@ function startListening() {
     (list) => { items = list.sort((a, b) => String(a.title).localeCompare(String(b.title), "ko")); ready = true; render(); paintBell(); },   // 날짜가 같으면 가나다 순
     (list) => { trash = list; render(); },
     () => lockedOut(),
-    (list) => { cart = list; renderCart(); paintBell(); },
+    (list) => { cart = list.filter((c) => !c.kind); wish = list.filter((c) => c.kind === "wish"); spins = list.filter((c) => c.kind === "spin"); renderCart(); renderWish(); paintBell(); },
     { wallet: (list) => { wallet = list; wReady.wallet = true; walletChanged(); },
       wauto: (list) => { wauto = list; wReady.wauto = true; walletChanged(); } });
 }
-function showLocked() { store.stop(); items = []; trash = []; cart = []; wallet = []; wauto = []; wReady = {}; ready = true; render(); renderCart(); renderWallet(); }
+function showLocked() { store.stop(); items = []; trash = []; cart = []; wallet = []; wauto = []; wReady = {}; wish = []; spins = []; ready = true; render(); renderCart(); renderWallet(); renderWish(); }
 const viewLocked = () => hasConfig && !pw;
 
 // ---------------------------------------------------------------------
