@@ -358,13 +358,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 #view-wish[hidden] { display: none; }
 /* 냥수첩은 앱처럼: 머리 그림을 숨기고 화면 한 장에 맞춘 뒤, 목록만 안에서 스크롤 */
 body.app { overflow: hidden; }
-body.app .wrap { display: none; }
-#view-wish { position: fixed; left: 0; right: 0; margin: 0 auto; max-width: 680px; box-sizing: border-box; padding: 0 16px; top: calc(64px + env(safe-area-inset-top, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); grid-template-rows: auto auto 1fr auto; gap: 10px; }
+body.app .head, body.app .demo { display: none; }
+#view-wish, body.app #view-cart { position: fixed; left: 0; right: 0; margin: 0 auto; max-width: 680px; box-sizing: border-box; padding: 0 16px; top: calc(64px + env(safe-area-inset-top, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); grid-template-rows: auto auto auto 1fr auto; gap: 10px; }
+body.app #view-cart { grid-template-rows: auto 1fr; }
 .wscroll { display: grid; gap: 12px; align-content: start; overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
-.wishme { position: fixed; z-index: 5; top: calc(18px + env(safe-area-inset-top, 0px)); left: 16px; }
-body:not(.app) .wishme { display: none; }
+
 .wtabs { display: flex; gap: 6px; }
-.wtabs button { flex: 1; font: inherit; font-size: 14px; border: 2px solid var(--line); background: var(--sheet); color: var(--muted); border-radius: 999px; padding: 7px 4px; cursor: pointer; }
+.wtabs button { flex: 1; min-width: 0; white-space: nowrap; font: inherit; font-size: 14px; border: 2px solid var(--line); background: var(--sheet); color: var(--muted); border-radius: 999px; padding: 7px 4px; cursor: pointer; }
 .wtabs button[aria-selected="true"] { border-color: var(--accent); color: var(--accent-text); font-family: var(--f-display); }
 .wishme { display: flex; gap: 6px; align-items: center; justify-content: flex-end; font-size: 13px; color: var(--muted); }
 .wishme button { font: inherit; font-size: 13px; border: 1.5px solid var(--line); background: var(--sheet); color: var(--muted); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
@@ -436,6 +436,7 @@ body:not(.app) .wishme { display: none; }
   <button class="theme-btn" id="bellBtn" type="button" aria-label="새 소식" hidden><span class="ico" aria-hidden="true">🔔</span><span class="txt">새 소식</span><span class="badge" id="bellN" hidden></span></button>
   <button class="theme-btn" id="lockBtn" type="button"><span class="ico" aria-hidden="true">🔒</span><span class="txt">잠김</span></button>
   <button class="theme-btn" id="themeBtn" type="button"><span class="ico" aria-hidden="true">🌙</span><span class="txt">어둡게</span></button>
+  <button class="theme-btn" id="setBtn" type="button" aria-label="설정"><span class="ico" aria-hidden="true">⚙️</span><span class="txt">설정</span></button>
 </div>
 <div class="wrap">
   <header class="head">
@@ -501,12 +502,14 @@ body:not(.app) .wishme { display: none; }
     <input id="cartInput" placeholder="살 물건 (예: 고양이 모래)" maxlength="60" autocomplete="off" enterkeyhint="done" aria-label="살 물건">
     <button type="submit" class="add">+ 담기</button>
   </form>
+  <div class="wscroll">
   <section class="list" id="cartList" aria-live="polite"></section>
   <details class="trash" id="cartDone" hidden>
     <summary id="cartDoneSum"></summary>
     <div class="list" id="cartDoneList"></div>
     <button type="button" class="btn small cartclear" id="cartClear">산 것 비우기</button>
   </details>
+  </div>
 </main>
 
 <main class="view" id="view-wallet" hidden>
@@ -581,15 +584,14 @@ body:not(.app) .wishme { display: none; }
     <button type="button" role="tab" data-tab="cart"><span class="ico" aria-hidden="true">🧺</span>냥바구니</button>
     <button type="button" role="tab" data-tab="wallet"><span class="ico" aria-hidden="true">💰</span>냥지갑</button>
     <button type="button" role="tab" data-tab="wish"><span class="ico" aria-hidden="true">🎡</span>냥수첩</button>
-    <button type="button" role="tab" data-tab="set"><span class="ico" aria-hidden="true">⚙️</span>설정</button>
   </div>
 </nav>
 
 <main class="view" id="view-wish" hidden>
   <div class="wtabs" role="tablist" id="wishTabs">
-    <button type="button" data-c="go">🗺 가고 싶은 곳</button>
-    <button type="button" data-c="do">🎯 하고 싶은 것</button>
-    <button type="button" data-c="eat">🍜 먹고 싶은 것</button>
+    <button type="button" data-c="go">🗺 갈 곳</button>
+    <button type="button" data-c="do">🎯 할 것</button>
+    <button type="button" data-c="eat">🍜 먹을 것</button>
   </div>
   <div class="wishme" id="wishMe">나는 <button type="button" data-w="재민">🐷 재민</button><button type="button" data-w="은별">🐱 은별</button></div>
   <form class="search" id="wishForm">
@@ -1390,11 +1392,12 @@ function setTab(name) {
   if (!TABS.includes(name)) name = "cal";
   for (const b of document.querySelectorAll(".tabbar [data-tab]")) b.setAttribute("aria-selected", String(b.dataset.tab === name));
   for (const v of TABS) $("view-" + v).hidden = v !== name;
-  document.body.classList.toggle("app", name === "wish");
+  document.body.classList.toggle("app", name === "wish" || name === "cart");
   if (name === "list" && group) { group = null; render(); }
   window.scrollTo(0, 0);
 }
 for (const b of document.querySelectorAll(".tabbar [data-tab]")) b.onclick = () => setTab(b.dataset.tab);
+$("setBtn").onclick = () => setTab("set");
 
 // 찾기
 $("q").addEventListener("input", () => { q = $("q").value; $("qClear").hidden = !q; render(); });
