@@ -356,6 +356,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 /* 냥수첩 */
 #view-wish { display: grid; gap: 12px; }
 #view-wish[hidden] { display: none; }
+/* 냥수첩은 앱처럼: 머리 그림을 숨기고 화면 한 장에 맞춘 뒤, 목록만 안에서 스크롤 */
+body.app { overflow: hidden; }
+body.app .wrap { display: none; }
+#view-wish { position: fixed; left: 0; right: 0; margin: 0 auto; max-width: 680px; box-sizing: border-box; padding: 0 16px; top: calc(64px + env(safe-area-inset-top, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); grid-template-rows: auto auto 1fr auto; gap: 10px; }
+.wscroll { display: grid; gap: 12px; align-content: start; overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
+.wishme { position: fixed; z-index: 5; top: calc(18px + env(safe-area-inset-top, 0px)); left: 16px; }
+body:not(.app) .wishme { display: none; }
 .wtabs { display: flex; gap: 6px; }
 .wtabs button { flex: 1; font: inherit; font-size: 14px; border: 2px solid var(--line); background: var(--sheet); color: var(--muted); border-radius: 999px; padding: 7px 4px; cursor: pointer; }
 .wtabs button[aria-selected="true"] { border-color: var(--accent); color: var(--accent-text); font-family: var(--f-display); }
@@ -590,11 +597,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     <input id="wishInput" placeholder="예: 제주도 한달살기" maxlength="60" autocomplete="off" enterkeyhint="done" aria-label="적을 것">
     <button type="submit" class="add">+ 적기</button>
   </form>
-  <section class="list" id="wishList" aria-live="polite"></section>
+  <div class="wscroll">
+    <section class="list" id="wishList" aria-live="polite"></section>
+    <details class="trash" id="wishDone" hidden><summary id="wishDoneSum"></summary><div class="list" id="wishDoneList"></div></details>
+    <details class="trash" id="spinLog" hidden><summary>🎡 룰렛 기록</summary><div class="list" id="spinList"></div></details>
+    <p class="note">룰렛에 뽑히면 거절 없이 무조건! 다시 돌리기는 둘이 합쳐 한 달에 한 번이에요.</p>
+  </div>
   <button type="button" class="add spinbtn" id="spinBtn">🎡 룰렛 돌리기</button>
-  <details class="trash" id="wishDone" hidden><summary id="wishDoneSum"></summary><div class="list" id="wishDoneList"></div></details>
-  <details class="trash" id="spinLog" hidden><summary>🎡 룰렛 기록</summary><div class="list" id="spinList"></div></details>
-  <p class="note">룰렛에 뽑히면 거절 없이 무조건! 다시 돌리기는 둘이 합쳐 한 달에 한 번이에요.</p>
 </main>
 
 <!-- 냥수첩 룰렛 창 -->
@@ -1381,6 +1390,7 @@ function setTab(name) {
   if (!TABS.includes(name)) name = "cal";
   for (const b of document.querySelectorAll(".tabbar [data-tab]")) b.setAttribute("aria-selected", String(b.dataset.tab === name));
   for (const v of TABS) $("view-" + v).hidden = v !== name;
+  document.body.classList.toggle("app", name === "wish");
   if (name === "list" && group) { group = null; render(); }
   window.scrollTo(0, 0);
 }
