@@ -442,6 +442,42 @@ body.app #view-cart { grid-template-rows: auto 1fr; }
   .day .tag { font-size: 9.5px; padding: 0 2px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* 냥수첩: 바람 모으기 → 약속 고르기 → 함께한 추억 */
+#view-wish { grid-template-rows:auto auto auto auto minmax(0,1fr) auto; }
+.wish-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.wish-heading h2 { margin:0; font:22px var(--f-display); }
+.wish-heading p { margin:3px 0 0; color:var(--muted); font-size:12px; }
+.wish-heading > span { font-size:30px; }
+#view-wish .wishme { justify-content:flex-start; }
+#view-wish .wishme button { min-height:36px; padding:5px 14px; }
+#view-wish .wtabs button { min-height:42px; }
+#view-wish .search { border-radius:16px; min-height:46px; }
+#view-wish .search input { font-size:16px; }
+#view-wish .search .add { white-space:nowrap; }
+.wish-promise { display:grid; gap:8px; padding:14px 16px; border:1.5px solid var(--accent); border-radius:18px; background:var(--sheet); }
+.wish-promise small { color:var(--muted); }
+.wish-promise strong { font:19px var(--f-display); overflow-wrap:anywhere; }
+.wish-promise .btn { justify-self:start; min-height:36px; }
+#view-wish .wrow { padding:14px 12px; }
+#view-wish .wrow .x { min-width:40px; min-height:40px; }
+#view-wish .note { font-size:12px; margin:2px 2px 8px; }
+#view-wish .empty { padding:22px 12px; }
+.wish-editor:not([open]) { display:none; }
+.wish-editor { border:2px solid var(--line); max-height:calc(100dvh - 32px); }
+.wish-editor::backdrop { background:rgba(30,20,30,.45); }
+.wish-editor form { display:grid; gap:16px; }
+.wish-editor #we-memory { display:grid; gap:12px; }
+.wish-editor input[type="checkbox"] { width:20px; height:20px; vertical-align:middle; accent-color:var(--accent); }
+.wish-editor input,.wish-editor select,.wish-editor textarea { font-size:16px; }
+#spinVeil .panel { overflow-x:hidden; }
+#spinVeil .wheelbox { width:min(280px,65vw,34dvh); }
+#spinVeil .wpick { overflow-wrap:anywhere; font-size:23px; }
+#spinVeil .note { margin:0; text-align:center; font-size:12px; }
+#spinVeil button { min-height:40px; }
+@media (max-height:650px) { #view-wish { top:52px; gap:6px; } .wish-heading h2 { font-size:18px; } .wish-heading p { display:none; } #view-wish .spinbtn { padding:8px; font-size:16px; } }
+@media (prefers-reduced-motion:reduce) { #spinVeil *, .confetti { animation:none !important; transition:none !important; } }
+
 </style>
 </head>
 <body>
@@ -602,32 +638,51 @@ body.app #view-cart { grid-template-rows: auto 1fr; }
 </nav>
 
 <main class="view" id="view-wish" hidden>
-  <div class="wtabs" role="tablist" id="wishTabs">
+  <div class="wish-heading"><div><h2>우리의 하고 싶은 일</h2><p id="wishStatus">작은 바람을 모아, 다음 데이트로.</p></div><span aria-hidden="true">📒</span></div>
+  <div class="wtabs" role="tablist" aria-label="바람 분류" id="wishTabs">
     <button type="button" data-c="go">🗺 갈 곳</button>
     <button type="button" data-c="do">🎯 할 것</button>
     <button type="button" data-c="eat">🍜 먹을 것</button>
   </div>
-  <div class="wishme" id="wishMe">나는 <button type="button" data-w="재민">🐷 재민</button><button type="button" data-w="은별">🐱 은별</button></div>
+  <div class="wishme" id="wishMe">작성자는 <button type="button" data-w="재민">🐷 재민</button><button type="button" data-w="은별">🐱 은별</button></div>
   <form class="search" id="wishForm">
     <span aria-hidden="true">📝</span>
     <input id="wishInput" placeholder="예: 제주도 한달살기" maxlength="60" autocomplete="off" enterkeyhint="done" aria-label="적을 것">
     <button type="submit" class="add">+ 적기</button>
   </form>
   <div class="wscroll">
+    <div class="wish-promise" id="wishPromise" hidden></div>
     <section class="list" id="wishList" aria-live="polite"></section>
     <details class="trash" id="wishDone" hidden><summary id="wishDoneSum"></summary><div class="list" id="wishDoneList"></div></details>
-    <details class="trash" id="spinLog" hidden><summary>🎡 룰렛 기록</summary><div class="list" id="spinList"></div></details>
-    <p class="note">룰렛에 뽑히면 거절 없이 무조건! 다시 돌리기는 둘이 합쳐 한 달에 한 번이에요.</p>
+    <details class="trash" id="spinLog" hidden><summary>🎡 우리가 뽑은 약속</summary><div class="list" id="spinList"></div></details>
+    <p class="note" id="wishRule">아직 안 한 것 중에서 골라요. 뽑힌 결과는 자동으로 기록돼요.<br>다시 돌리기는 둘이 합쳐 한 달에 한 번이에요.</p>
   </div>
   <button type="button" class="add spinbtn" id="spinBtn">🎡 룰렛 돌리기</button>
 </main>
 
+<dialog id="wishEditor" class="panel wish-editor" aria-labelledby="wishEditTitle">
+  <form id="wishEditForm">
+    <h2 id="wishEditTitle">바람 고치기</h2>
+    <label class="field"><span>하고 싶은 일</span><input id="we-title" maxlength="60" required></label>
+    <div class="two">
+      <label class="field"><span>어떤 바람?</span><select id="we-cat"><option value="go">🗺 갈 곳</option><option value="do">🎯 할 것</option><option value="eat">🍜 먹을 것</option></select></label>
+      <label class="field"><span>적은 사람</span><select id="we-who"><option>재민</option><option>은별</option><option value="">미지정</option></select></label>
+    </div>
+    <label class="field"><span><input type="checkbox" id="we-done"> 함께 했어요</span></label>
+    <div id="we-memory" hidden>
+      <label class="field"><span>함께한 날</span><input type="date" id="we-date"></label>
+      <label class="field"><span>한 줄 추억 (선택)</span><textarea id="we-review" maxlength="80" placeholder="어땠는지 짧게 남겨요"></textarea></label>
+    </div>
+    <div class="actions"><button type="button" class="btn danger" id="we-delete">삭제</button><div class="right"><button type="button" class="btn" id="we-cancel">취소</button><button class="btn primary" id="we-save" type="submit">저장</button></div></div>
+  </form>
+</dialog>
 <!-- 냥수첩 룰렛 창 -->
 <div class="veil" id="spinVeil" hidden>
-  <div class="panel">
-    <h2>🎡 냥수첩 룰렛</h2>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="spinTitle">
+    <h2 id="spinTitle">🎡 다음엔 이거 어때?</h2>
     <div class="wheelbox" id="wheelbox"><div class="wheel" id="wheel"></div><div class="hub"></div><div class="pin" id="pin"></div></div>
     <p class="wpick" id="wpick" aria-live="polite"></p>
+    <p class="note" id="spinHint">모든 후보는 같은 확률로 뽑혀요.</p>
     <div class="actions">
       <button type="button" class="btn" id="spinRe" hidden></button>
       <div class="right">
@@ -1473,38 +1528,75 @@ const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 function wishRow(w) {
   const l = document.createElement("div"); l.className = "wrow" + (w.done ? " done" : "");
   const box = document.createElement("input"); box.type = "checkbox"; box.checked = !!w.done; box.setAttribute("aria-label", w.title + " 했어요");
-  box.onchange = () => needUnlock(() => {
-    const { id, ...d } = w;
-    if (!box.checked) return wSave({ ["cart/" + id]: { ...d, done: false, doneAt: "", review: "" } });
-    const review = (prompt("한 줄 후기 (안 적어도 돼요)", "") || "").trim().slice(0, 80);
-    wSave({ ["cart/" + id]: { ...d, done: true, doneAt: ymd(today()), review } });
-  });
+  box.onchange = () => { box.checked = !!w.done; needUnlock(() => openWishEditor(w, !w.done)); };
   const t = document.createElement("div"); t.className = "t";
   t.innerHTML = `<span>${esc(w.title)}</span>${whoTag(w.who)}` + (w.done ? `<small>${esc(w.doneAt)}${w.review ? " · " + esc(w.review) : ""}</small>` : "");
   const ed = document.createElement("button"); ed.type = "button"; ed.className = "x"; ed.textContent = "✏️"; ed.setAttribute("aria-label", w.title + " 고치기");
-  ed.onclick = () => needUnlock(() => {
-    const v = prompt("고치기 (비우면 지워요)", w.title); if (v == null) return;
-    const title = v.trim().slice(0, 60), { id, ...d } = w;
-    if (!title) { if (confirm(`'${w.title}' 지울까요?`)) wSave({ ["cart/" + id]: null }); return; }
-    wSave({ ["cart/" + id]: { ...d, title } });
-  });
+  ed.onclick = () => needUnlock(() => openWishEditor(w));
   l.append(box, t, ed); return l;
 }
+let wishEditing = null;
+function openWishEditor(w, done = !!w.done) {
+  wishEditing = w.id;
+  $("wishEditTitle").textContent = done ? "함께한 추억 남기기" : "바람 고치기";
+  $("we-title").value = w.title; $("we-cat").value = w.cat; $("we-who").value = w.who || "";
+  $("we-done").checked = done; $("we-memory").hidden = !done;
+  $("we-date").value = w.doneAt || ymd(today()); $("we-review").value = w.review || "";
+  $("wishEditor").showModal();
+}
+$("we-done").onchange = () => { $("we-memory").hidden = !$("we-done").checked; };
+$("we-cancel").onclick = () => $("wishEditor").close();
+$("wishEditForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const current = wish.find((w) => w.id === wishEditing);
+  if (!current || viewLocked()) { $("wishEditor").close(); toast("목록이 바뀌었어요. 다시 열어 주세요."); return; }
+  const title = $("we-title").value.trim();
+  if (!title) { $("we-title").focus(); return; }
+  const { id, ...data } = current, done = $("we-done").checked;
+  $("we-save").disabled = true;
+  if (await wSave({ ["cart/" + id]: { ...data, title, cat: $("we-cat").value, who: $("we-who").value, done,
+      doneAt: done ? ($("we-date").value || ymd(today())) : "", review: done ? $("we-review").value.trim() : "" } })) $("wishEditor").close();
+  $("we-save").disabled = false;
+};
+$("we-delete").onclick = async () => {
+  const w = wish.find((w) => w.id === wishEditing);
+  if (!w || viewLocked() || !confirm(`'${w.title}' 바람을 삭제할까요?`)) return;
+  if (await wSave({ ["cart/" + w.id]: null })) $("wishEditor").close();
+};
+const wishMeta = { go: ["갈 곳", "예: 바다 보며 산책하기"], do: ["할 것", "예: 같이 도자기 만들기"], eat: ["먹을 것", "예: 동네 새로 생긴 파스타집"] };
 function renderWish() {
   for (const b of $("wishTabs").children) b.setAttribute("aria-selected", String(b.dataset.c === wCat));
   for (const b of $("wishMe").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.w === me));
+  $("wishInput").placeholder = wishMeta[wCat][1];
+  $("wishPromise").hidden = true;
+  $("spinBtn").textContent = "🔒 잠금 해제하고 고르기";
+  $("wishStatus").textContent = "둘의 바람을 모아, 다음 데이트로.";
   if (viewLocked()) { $("wishList").replaceChildren(lockedEmpty()); $("wishDone").hidden = $("spinLog").hidden = true; return; }
   const mine = wish.filter((w) => w.cat === wCat).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
   const todo = mine.filter((w) => !w.done), done = mine.filter((w) => w.done);
+  $("wishStatus").textContent = `${wishMeta[wCat][0]} · 기다리는 바람 ${todo.length}개 · 함께한 추억 ${done.length}개`;
+  $("spinBtn").textContent = todo.length < 2 ? `🎡 후보를 ${2 - todo.length}개 더 적어 주세요` : `🎡 ${todo.length}개 중 오늘의 약속 뽑기`;
+  $("spinBtn").setAttribute("aria-describedby", "wishRule");
+  const last = spins.filter((x) => x.cat === wCat).sort((a,b) => String(b.at).localeCompare(String(a.at)))[0];
+  const lastWish = last && wish.find((w) => w.id === last.wishId && !w.done);
+  if (lastWish) {
+    $("wishPromise").hidden = false;
+    $("wishPromise").replaceChildren();
+    const label = document.createElement("small"); label.textContent = "🐾 우리가 뽑은 다음 약속";
+    const title = document.createElement("strong"); title.textContent = lastWish.title;
+    const finish = document.createElement("button"); finish.type = "button"; finish.className = "btn small"; finish.textContent = "다녀왔어요 · 후기 남기기";
+    finish.onclick = () => needUnlock(() => openWishEditor(lastWish, true));
+    $("wishPromise").append(label,title,finish);
+  }
   if (todo.length) $("wishList").replaceChildren(...todo.map(wishRow));
-  else { const e = document.createElement("div"); e.className = "empty"; e.innerHTML = SLEEPY_CAT + "<strong>아직 아무것도 없다냥</strong>위에 적어 주세요"; $("wishList").replaceChildren(e); }
-  $("wishDone").hidden = !done.length; $("wishDoneSum").textContent = `다 한 것 (${done.length})`;
+  else { const e = document.createElement("div"); e.className = "empty"; e.innerHTML = SLEEPY_CAT + "<strong>아직 아무것도 없다냥</strong>갈 곳·할 것·먹을 것을 하나씩 모아봐요"; $("wishList").replaceChildren(e); }
+  $("wishDone").hidden = !done.length; $("wishDoneSum").textContent = `함께한 추억 (${done.length})`;
   $("wishDoneList").replaceChildren(...done.map(wishRow));
   const log = spins.filter((x) => x.cat === wCat).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 30);
   $("spinLog").hidden = !log.length;
   $("spinList").replaceChildren(...log.map((x) => {
     const d = document.createElement("div"); d.className = "wrow"; const w = wish.find((v) => v.id === x.wishId);
-    d.innerHTML = `<div class="t"><span>${w?.done ? "✅" : "⏳"} ${esc(x.title)}</span><small>${esc(String(x.at).slice(0, 10))} · ${esc(x.who || "")} 돌림${x.reroll ? " · 다시 돌리기" : ""}</small></div>`; return d;
+    d.innerHTML = `<div class="t"><span>${!w ? "🗑" : w.done ? "✅" : "🐾"} ${esc(x.title)}</span><small>${esc(String(x.at).slice(0, 10))} · ${esc(x.who || "")} 돌림${x.reroll ? " · 다시 돌리기" : ""}</small></div>`; return d;
   }));
 }
 for (const b of $("wishTabs").children) b.onclick = () => { wCat = b.dataset.c; lsSet("dday-wcat", wCat); renderWish(); };
@@ -1514,6 +1606,7 @@ $("wishForm").addEventListener("submit", (e) => {
   const title = $("wishInput").value.trim().slice(0, 60);
   if (!title) return;
   if (!me) { toast("먼저 '나는' 재민·은별을 골라 주세요"); return; }
+  if (wish.some((w) => w.cat === wCat && !w.done && w.title.trim() === title)) { toast("이미 적어둔 바람이에요."); return; }
   needUnlock(async () => {
     if (await wSave({ ["cart/" + store.newId()]: { kind: "wish", cat: wCat, title, who: me, createdAt: new Date().toISOString(), done: false } })) { $("wishInput").value = ""; $("wishInput").focus(); }
   });
@@ -1536,19 +1629,32 @@ function confetti() {
 }
 const angleOf = (el) => { const m = new DOMMatrix(getComputedStyle(el).transform); return (Math.atan2(m.b, m.a) * 180 / Math.PI + 360) % 360; };
 let deg = 0, picked = null, isReroll = false, spinning = false;
-const rerollsLeft = () => 1 - spins.filter((x) => x.reroll && String(x.at).slice(0, 7) === ymd(today()).slice(0, 7)).length;
-function spin() {
+let spinRecord = null;
+const rerollsLeft = () => Math.max(0, 1 - spins.filter((x) => x.reroll && String(x.at).slice(0, 7) === ymd(today()).slice(0, 7)).length);
+async function spin() {
   const pool = wish.filter((w) => w.cat === wCat && !w.done);
   if (pool.length < 2) { toast("2개 이상 적어야 돌릴 수 있다냥"); return; }
   if (spinning) return; spinning = true;
   const n = pool.length, seg = 360 / n, i = Math.floor(Math.random() * n), wheel = $("wheel");
+  // 결과를 먼저 저장해야 닫기·새로고침으로 약속과 재추첨 제한이 사라지지 않는다.
+  const recordId = store.newId();
+  const record = { kind: "spin", cat: wCat, wishId: pool[i].id, title: pool[i].title, who: me, at: new Date().toISOString(), ...(isReroll ? { reroll: true } : {}) };
+  $("spinBtn").disabled = $("spinRe").disabled = true;
+  if (!await wSave({ ["cart/" + recordId]: record })) { spinning = false; $("spinBtn").disabled = $("spinRe").disabled = false; return; }
+  spinRecord = record;
+  $("spinClose").disabled = true;
+  $("spinHint").textContent = `${n}개 후보 · 모두 같은 확률 · 결과는 자동으로 기록돼요`;
+
   wheel.style.background = `conic-gradient(${pool.map((_, k) => `${WCOL[k % WCOL.length]} ${k * seg}deg ${(k + 1) * seg}deg`).join(",")})`;
-  wheel.replaceChildren(...pool.map((w, k) => { const s = document.createElement("span"); s.textContent = w.title; s.style.transform = `rotate(${k * seg + seg / 2 - 90}deg)`; return s; }));
+  wheel.replaceChildren(...pool.map((w, k) => { const s = document.createElement("span"); s.textContent = n > 8 ? String(k + 1) : w.title; s.style.transform = `rotate(${k * seg + seg / 2 - 90}deg)`; return s; }));
   const jitter = (Math.random() - .5) * seg * .6;   // 칸 가운데에서 살짝 비껴 서게 (더 진짜 같게)
   deg += 2160 + ((360 - (i * seg + seg / 2 + jitter) - (deg % 360)) % 360 + 360) % 360;   // 위쪽 핀이 i번째 칸에 서게, 6바퀴 더
+  $("spinVeil").hidden = false;
+  void wheel.offsetWidth; // 숨겨진 룰렛을 먼저 배치해야 첫 회전도 애니메이션된다.
   wheel.style.transform = `rotate(${deg}deg)`;
   picked = null; $("wpick").textContent = "두근두근… 🐾"; $("wpick").className = "wpick wait";
   $("spinOk").hidden = $("spinRe").hidden = true; $("spinVeil").hidden = false; $("wheelbox").classList.add("spinning");
+  const spinPanel = $("spinVeil").querySelector(".panel"); spinPanel.tabIndex = -1; spinPanel.focus();
   // 칸 경계를 지날 때마다 핀이 툭 튕기고 휴대폰이 톡
   let last = Math.floor(angleOf(wheel) / seg);
   const tick = () => {
@@ -1559,22 +1665,21 @@ function spin() {
   };
   requestAnimationFrame(tick);
   setTimeout(() => {
-    spinning = false; picked = pool[i]; $("wheelbox").classList.remove("spinning");
+    spinning = false; $("spinBtn").disabled = $("spinClose").disabled = false; picked = pool[i]; $("wheelbox").classList.remove("spinning");
     $("wpick").className = "wpick pop"; $("wpick").innerHTML = `<small>🎉 당첨이다냥! 🎉</small>${esc(picked.title)}`;
-    confetti(); navigator.vibrate?.([30, 40, 60]);
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) confetti(); navigator.vibrate?.([30, 40, 60]);
     const left = Math.max(0, rerollsLeft());
     $("spinOk").hidden = $("spinRe").hidden = false; $("spinRe").disabled = !left;
     $("spinRe").textContent = `다시 돌리기 (이번 달 ${left}번)`;
-  }, 4300);
+    $("spinOk").focus();
+  }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 100 : 4300);
 }
 $("spinBtn").onclick = () => needUnlock(() => { if (!me) { toast("먼저 '나는' 재민·은별을 골라 주세요"); return; } isReroll = false; spin(); });
 $("spinRe").onclick = () => { if (rerollsLeft() > 0) { isReroll = true; spin(); } };
-$("spinClose").onclick = () => { if (!spinning) $("spinVeil").hidden = true; };
-$("spinOk").onclick = async () => {
-  if (!picked) return;
-  const rec = { kind: "spin", cat: wCat, wishId: picked.id, title: picked.title, who: me, at: new Date().toISOString() };
-  if (isReroll) rec.reroll = true;
-  if (await wSave({ ["cart/" + store.newId()]: rec })) { $("spinVeil").hidden = true; toast("약속했다냥! 거절 없음 🐾"); }
+$("spinClose").onclick = () => { if (!spinning) { $("spinVeil").hidden = true; $("spinBtn").focus(); } };
+$("spinOk").onclick = () => {
+  if (!picked || !spinRecord) return;
+  $("spinVeil").hidden = true; $("spinBtn").focus(); toast("약속을 기록했어요. 함께하고 후기도 남겨요 🐾");
 };
 
 // ---------------------------------------------------------------------
@@ -2094,7 +2199,14 @@ $("cancelBtn").onclick = closeForm;
 $("veil").addEventListener("click", (e) => { if (e.target === $("veil")) closeForm(); });
 $("lockVeil").addEventListener("click", (e) => { if (e.target === $("lockVeil")) $("lockCancel").onclick(); });
 document.addEventListener("keydown", (e) => {
+  if (e.key === "Tab" && !$("spinVeil").hidden) {
+    const buttons = [...$("spinVeil").querySelectorAll("button")].filter((b) => !b.hidden && !b.disabled);
+    if (!buttons.length) { e.preventDefault(); return; }
+    if (buttons.length && ((e.shiftKey && document.activeElement === buttons[0]) || (!e.shiftKey && document.activeElement === buttons.at(-1)))) { e.preventDefault(); (e.shiftKey ? buttons.at(-1) : buttons[0]).focus(); }
+    return;
+  }
   if (e.key !== "Escape") return;
+  if (!$("spinVeil").hidden && !spinning) $("spinClose").onclick();
   if (!$("veil").hidden) closeForm();
   if (!$("lockVeil").hidden) $("lockCancel").onclick();
 });
