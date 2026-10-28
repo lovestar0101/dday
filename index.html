@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>우리집 냥냥이</title>
+<title>디데이 관리자</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="우리집 냥냥이">
+<meta name="apple-mobile-web-app-title" content="디데이 관리자">
 <meta name="theme-color" content="#fffaf0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -508,7 +508,7 @@ body.app #view-cart { grid-template-rows: auto 1fr; }
       </div>
     </div>
     <div class="intro">
-      <h1>우리집 <span class="nyang">냥냥이</span></h1>
+      <h1>디데이 <span class="nyang">관리자</span></h1>
     </div>
   </header>
 
@@ -803,7 +803,7 @@ body.app #view-cart { grid-template-rows: auto 1fr; }
     </label>
     <div class="two" id="cycleWrap">
       <label class="field" style="grid-column: 1 / -1"><span>반복</span>
-        <select id="f-rep"><option value="">며칠 먹고 며칠 쉬기</option><option value="monthly">매달 같은 날 (예: 심장사상충 매달 1일)</option></select></label>
+        <select id="f-rep"><option value="">며칠 먹고 며칠 쉬기</option><option value="monthly">매달 같은 날 (예: 심장사상충 매달 1일)</option><option value="4w">4주마다 (예: 정수기 필터)</option></select></label>
       <label class="field" id="onWrap"><span>먹는 날 수</span><input id="f-on" type="number" min="1" max="365" inputmode="numeric"></label>
       <label class="field" id="offWrap"><span>쉬는 날 수</span><input id="f-off" type="number" min="0" max="365" inputmode="numeric"></label>
     </div>
@@ -1066,6 +1066,7 @@ function nextMonthly(base, t) {
   if (d < t) d = onMonth(base, t.getFullYear(), t.getMonth() + 1);
   return d;
 }
+function next4w(base, t) { return t <= base ? base : new Date(t.getFullYear(), t.getMonth(), t.getDate() + (28 - diff(base, t) % 28) % 28); }
 function compute(it, t) {
   const base = parse(it.date);
   if (!base) return null;
@@ -1096,6 +1097,11 @@ function compute(it, t) {
     return { key: Math.min(n100, nY), big: `${days.toLocaleString()}일`, small: isToday ? "오늘이 기념일!" : "째",
       sub: `${fmt(base)}부터 · ${nextTxt}`, state: isToday ? "today" : "", target: n100 <= nY ? d100 : dY,
       party: "축하해요! 💐" };
+  }
+  if (it.kind === "cycle" && it.repeat === "4w") {   // 4주마다 (예: 정수기 필터)
+    const next = next4w(base, t), n = diff(t, next);
+    return { key: n, big: ddLabel(n), small: n === 0 ? "오늘 하는 날" : "4주마다",
+      sub: `4주마다 · 다음은 ${fmt(next)}`, state: n === 0 ? "today" : n <= 3 ? "soon" : "", target: n > 0 ? next : null };
   }
   if (it.kind === "cycle" && it.repeat === "monthly") {   // 매달 같은 날 (예: 심장사상충 매달 1일)
     const next = nextMonthly(base, t), n = diff(t, next);
@@ -1227,6 +1233,7 @@ function whenOf(it, c, t) {
   const base = parse(it.date);
   if (it.kind === "birthday") return nextBday(it, base, t).next;
   if (it.kind === "anniv") return c.target || base;
+  if (it.kind === "cycle" && it.repeat === "4w") return next4w(base, t);
   if (it.kind === "cycle" && it.repeat === "monthly") return nextMonthly(base, t);
   if (it.kind === "cycle") {
     const on = Math.max(1, Math.round(Number(it.on) || 21)), off = Math.max(0, Math.round(Number(it.off) || 0)), d = diff(base, t);
@@ -1381,6 +1388,8 @@ function eventsBetween(start, end) {     // start~end(포함) 사이 날짜별 [
       }
       const from = Math.max(1, Math.ceil((diff(base, start) + 1) / 100)), to = Math.floor((diff(base, end) + 1) / 100);
       for (let k = from; k <= to; k++) put(plusDays(base, k * 100 - 1), it, `${k * 100}일`);
+    } else if (it.kind === "cycle" && it.repeat === "4w") {
+      for (let d = next4w(base, start); d <= end; d = plusDays(d, 28)) put(d, it, "4주마다");
     } else if (it.kind === "cycle" && it.repeat === "monthly") {
       for (let y = start.getFullYear(), m = start.getMonth(); new Date(y, m, 1) <= end; m++) {
         const d = onMonth(base, y, m); if (d >= base) put(d, it, `매달 ${base.getDate()}일`);
@@ -2135,8 +2144,9 @@ function applyKind() {
   $("leapWrap").hidden = !$("f-lunar").checked;
   if (currentKind() === "birthday" && $("f-lunar").checked) { $("dateLabel").textContent = "태어난 날 (음력)"; $("kindHint").textContent = "음력 날짜로 골라요. 해마다 양력으로 바꿔서 다음 생일을 보여줘요."; }
   $("cycleWrap").hidden = currentKind() !== "cycle";
-  const monthly = currentKind() === "cycle" && $("f-rep").value === "monthly";
-  $("onWrap").hidden = $("offWrap").hidden = monthly;
+  const rep = currentKind() === "cycle" && $("f-rep").value, monthly = rep === "monthly";
+  $("onWrap").hidden = $("offWrap").hidden = !!rep;
+  if (rep === "4w") { $("dateLabel").textContent = "처음 하는 날 (여기서부터 4주마다 반복)"; $("kindHint").textContent = "28일마다 같은 요일에 돌아와요."; }
   if (monthly) { $("dateLabel").textContent = "처음 하는 날 (이 날짜의 ‘일’로 매달 반복)"; $("kindHint").textContent = "매달 같은 날에 돌아와요. 31일처럼 없는 달은 그 달 마지막 날로 해요."; }
   paintDoneBtn(editing && items.find((x) => x.id === editing));
 }
@@ -2197,7 +2207,7 @@ $("form").addEventListener("submit", async (e) => {
     if (end > date) body.end = end;
   }
   if (kind === "birthday" && $("f-lunar").checked) { body.lunar = true; if ($("f-leap").checked) body.leap = true; }
-  if (kind === "cycle" && $("f-rep").value === "monthly") body.repeat = "monthly";
+  if (kind === "cycle" && $("f-rep").value) body.repeat = $("f-rep").value;
   else if (kind === "cycle") {
     const on = Math.round(Number($("f-on").value)), off = Math.round(Number($("f-off").value));
     if (!(on >= 1)) { $("f-on").focus(); toast("먹는 날 수를 1 이상으로 적어주세요."); return; }

@@ -1,6 +1,6 @@
 {
-  "name": "우리집 냥냥이",
-  "short_name": "우리집 냥냥이",
+  "name": "디데이 관리자",
+  "short_name": "디데이 관리자",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
